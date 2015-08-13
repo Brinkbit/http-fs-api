@@ -16,15 +16,23 @@ In fact, we recommend that you not store the manipulated resources on an actual 
 All examples contained in this document are written as [ajax requests](http://api.jquery.com/jquery.ajax/) and use the fictitious `http://cats.com` as the domain.
 In all the examples, `/fs/` will be the route on which the file system API is defined.
 
+**[⬆ back to top](#overview)**
+
 # Resources
 
-Our filesystem has two types of resources, files and directories. Both can be manipulated with the same actions, but each behave a little differently.
+Our filesystem has two types of resources, files and directories.
+Both can be manipulated with the same actions, but each behave a little differently.
+
+TODO: expand explanation
+
+**[⬆ back to top](#overview)**
 
 # Request
 
 Requests are made on a uri with one of the following four [HTTP methods](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html): "GET", "POST", "PUT", "DELETE".
 
-A uri represents the resource to take action on. For example the uri `/img.png`
+A uri represents the resource to take action on.
+For example the uri `/img.png`
 
 Every request accepts an optional JSON object as a request parameter.
 
@@ -40,37 +48,42 @@ $.ajax({
   }
 })
 ```
+**[⬆ back to top](#overview)**
 
 # Response
 
 TODO: outline what a generalized response looks like
 
+**[⬆ back to top](#overview)**
+
 ## Methods
 
-1. ** [Get](#get) **
+1. **[Get](#get)**
   1. [Read](#1.1)
   1. [Help](#1.2)
   1. [Search](#1.3)
   1. [Inspect](#1.4)
-1. ** [Post](#post) **
+1. **[Post](#post)**
   1. [Create](#2.1)
   1. [Copy](#2.2)
-1. ** [Put](#post) **
+1. **[Put](#post)**
   1. [Update](#3.1)
   1. [Move](#3.2)
   1. [Rename](#3.3)
-1. ** [Delete](#delete) **
+1. **[Delete](#delete)**
   1. [Delete](#4.1)
+
+**[⬆ back to top](#overview)**
 
 ## Actions
 
-
-
-
-
+TODO: explain what actions are
 
 ### Get
-- [1.1](#1.1) <a name='1.1'></a> **Read**: Returns file and directory contents. Default GET action.
+
+- [1.1](#1.1) <a name='1.1'></a> **Read** *default*
+  > Request file or directory contents.
+    Default GET action
 
   Parameters
   > *none*
@@ -99,63 +112,131 @@ TODO: outline what a generalized response looks like
     'morePrettyCats/' // a directory, signified by the trailing /
   ]
   ```
+  TODO: outline errors
 
 - [1.2](#1.2) <a name='1.2'></a> **Help**
+  > Request detailed information for a given HTTP method or filesystem action.
 
   Parameters
-  + `method`
+  + `method` `string` *optional* -
+    an http method i.e. Get, Put, Post, or Delete
+  + `action` `string` *optional* -
+    a filesystem action i.e. Search
 
+  Returns a raw text help message
   ```javascript
   // request
   $.ajax({
     url: 'http://cats.com/fs/Siamese.img',
     data: {
       action: 'Help',
-      method: 'Read'
+      action: 'Open'
     }
   });
 
   // response
   "Returns file and directory contents. Default GET action.\nParameters: none\n"
   ```
+  TODO: outline errors
 
 - [1.3](#1.3) <a name='1.3'></a> **Search**
+  > Run a query on the requested resource
 
-  **Parameters**
-  + fields - `array`
-    an array of strings
+  Parameters
+  + TODO: outline parameters
 
+  TODO: examples
+  TODO: outline errors
 
 - [1.4](#1.4) <a name='1.4'></a> **Inspect**
+  > Request detailed information about a resource
+
+  Parameters
+  + `fields` `array` -
+    an array of strings
+
+  TODO: examples
+  TODO: outline errors
+
+**[⬆ back to top](#overview)**
 
 ### Post
+
 - [2.1](#2.1) <a name='2.1'></a> **Create** *default*
+  > Create a resource with optional initial data.
+    Default POST action
+
+  Parameters
+  + TODO: outline parameters
+
+  TODO: examples
+  TODO: outline errors
+
 - [2.2](#2.2) <a name='2.2'></a> **Copy**
+  > Copy a resource
+
+  Parameters
+  + TODO: outline parameters
+
+  TODO: examples
+  TODO: outline errors
+
+**[⬆ back to top](#overview)**
 
 ### Put
+
 - [3.1](#3.1) <a name='3.1'></a> **Update** *default*
+  > Modify an existing resource.
+    Default PUT action
+
+  Parameters
+  + TODO: outline parameters
+
+  TODO: examples
+  TODO: outline errors
+
 - [3.2](#3.2) <a name='3.2'></a> **Move**
+  > Relocate an existing resource
+
+  Parameters
+  + TODO: outline parameters
+
+  TODO: examples
+  TODO: outline errors
+
 - [3.3](#3.3) <a name='3.3'></a> **Rename**
+  > Rename an existing resource
+
+  Parameters
+  + TODO: outline parameters
+
+  TODO: examples
+  TODO: outline errors
+
+**[⬆ back to top](#overview)**
+
+### Delete
+
+- [4.1](#4.1) <a name='4.1'></a> **Delete**
+  > Destroy an existing resource
+
+  Parameters
+  + TODO: outline parameters
+
+  TODO: examples
+  TODO: outline errors
 
 
 
+**[⬆ back to top](#overview)**
 
+# TODOs
 
-
-
-
-TODO: mention resources mapping to URIs
-
-TODO: mention json data type
-
-TODO: describe HTTP commands
-
-TODO: outline response format
-
-TODO: outline request format
-
-TODO: outline what an action is (i.e. Open, Save, Copy)
-
-TODO: outline the different actions and their HTTP command mappings
-
-TODO: outline how to contribute
+- mention resources mapping to URIs
+- mention json data type
+- describe HTTP commands
+- outline response format
+- outline request format
+- outline what an action is (i.e. Open, Save, Copy)
+- outline the different actions and their HTTP command mappings
+- outline how to contribute
