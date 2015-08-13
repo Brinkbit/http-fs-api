@@ -1,6 +1,30 @@
 # http-fs-api
 > A generalized RESTful API for managing a remote file system.
 
+# Table of Contents
+
+1. [Overview](#overview)
+1. [Resources](#resources)
+1. [Request](#request)
+1. [Response](#response)
+1. [Actions](#actions)
+  1. [Get](#get)
+    1. [Read](#1.1)
+    1. [Help](#1.2)
+    1. [Search](#1.3)
+    1. [Inspect](#1.4)
+  1. [Post](#post)
+    1. [Create](#2.1)
+    1. [Copy](#2.2)
+  1. [Put](#post)
+    1. [Update](#3.1)
+    1. [Move](#3.2)
+    1. [Rename](#3.3)
+  1. [Delete](#delete)
+    1. [Delete](#4.1)
+
+**[⬆ back to top](#table-of-contents)**
+
 # Overview
 
 This API is intended to be the standard for communication between the client and server for the filesystem component of the Brinkbit IDE.
@@ -16,7 +40,7 @@ In fact, we recommend that you not store the manipulated resources on an actual 
 All examples contained in this document are written as [ajax requests](http://api.jquery.com/jquery.ajax/) and use the fictitious `http://cats.com` as the domain.
 In all the examples, `/fs/` will be the route on which the file system API is defined.
 
-**[⬆ back to top](#overview)**
+**[⬆ back to top](#table-of-contents)**
 
 # Resources
 
@@ -25,7 +49,7 @@ Both can be manipulated with the same actions, but each behave a little differen
 
 TODO: expand explanation
 
-**[⬆ back to top](#overview)**
+**[⬆ back to top](#table-of-contents)**
 
 # Request
 
@@ -48,32 +72,13 @@ $.ajax({
   }
 })
 ```
-**[⬆ back to top](#overview)**
+**[⬆ back to top](#table-of-contents)**
 
 # Response
 
 TODO: outline what a generalized response looks like
 
-**[⬆ back to top](#overview)**
-
-## Methods
-
-1. **[Get](#get)**
-  1. [Read](#1.1)
-  1. [Help](#1.2)
-  1. [Search](#1.3)
-  1. [Inspect](#1.4)
-1. **[Post](#post)**
-  1. [Create](#2.1)
-  1. [Copy](#2.2)
-1. **[Put](#post)**
-  1. [Update](#3.1)
-  1. [Move](#3.2)
-  1. [Rename](#3.3)
-1. **[Delete](#delete)**
-  1. [Delete](#4.1)
-
-**[⬆ back to top](#overview)**
+**[⬆ back to top](#table-of-contents)**
 
 ## Actions
 
@@ -158,7 +163,7 @@ TODO: explain what actions are
   TODO: examples
   TODO: outline errors
 
-**[⬆ back to top](#overview)**
+**[⬆ back to top](#table-of-contents)**
 
 ### Post
 
@@ -181,7 +186,7 @@ TODO: explain what actions are
   TODO: examples
   TODO: outline errors
 
-**[⬆ back to top](#overview)**
+**[⬆ back to top](#table-of-contents)**
 
 ### Put
 
@@ -213,7 +218,7 @@ TODO: explain what actions are
   TODO: examples
   TODO: outline errors
 
-**[⬆ back to top](#overview)**
+**[⬆ back to top](#table-of-contents)**
 
 ### Delete
 
@@ -228,7 +233,7 @@ TODO: explain what actions are
 
 
 
-**[⬆ back to top](#overview)**
+**[⬆ back to top](#table-of-contents)**
 
 # TODOs
 
