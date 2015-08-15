@@ -145,7 +145,10 @@ TODO: explain what actions are
     data: "Returns file and directory contents. Default GET action.\nParameters: none\n"
   }
   ```
-  TODO: outline errors
+
+  Errors
+  + `404` - Invalid path / Resource does not exist
+
 
 - [1.3](#1.3) <a name='1.3'></a> **Search**
   > Run a query on the requested resource
@@ -155,7 +158,9 @@ TODO: explain what actions are
     a regular expression to run against the requested resource
 
   TODO: examples
-  TODO: outline errors
+
+  Errors
+  + `404` - Invalid path / Resource does not exist
 
 - [1.4](#1.4) <a name='1.4'></a> **Inspect**
   > Request detailed information about a resource
@@ -165,7 +170,9 @@ TODO: explain what actions are
     an array of strings for each requested field
 
   TODO: examples
-  TODO: outline errors
+
+  Errors
+  + `404` - Invalid path / Resource does not exist
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -268,7 +275,7 @@ TODO: explain what actions are
   > none
 
   TODO: examples
-  
+
   Errors
   + `404` - Invalid path / Resource does not exist
 
