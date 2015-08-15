@@ -1,5 +1,5 @@
-# http-fs-api
-> A generalized RESTful API for managing a remote file system.
+# Brinkbit HTTP Filesystem API
+> A generalized RESTful API for managing a remote file system
 
 # Table of Contents
 
@@ -117,16 +117,16 @@ TODO: explain what actions are
     'morePrettyCats/' // a directory, signified by the trailing /
   ]
   ```
-  TODO: outline errors
+  Errors
+  + `404` - Invalid path / Resource does not exist
+
 
 - [1.2](#1.2) <a name='1.2'></a> **Help**
-  > Request detailed information for a given HTTP method or filesystem action.
+  > Request detailed information for a given HTTP method
 
   Parameters
   + `method` `string` *optional* -
     an http method i.e. Get, Put, Post, or Delete
-  + `action` `string` *optional* -
-    a filesystem action i.e. Search
 
   Returns a raw text help message
   ```javascript
@@ -140,7 +140,10 @@ TODO: explain what actions are
   });
 
   // response
-  "Returns file and directory contents. Default GET action.\nParameters: none\n"
+  {
+    code: 200,
+    data: "Returns file and directory contents. Default GET action.\nParameters: none\n"
+  }
   ```
   TODO: outline errors
 
@@ -148,7 +151,8 @@ TODO: explain what actions are
   > Run a query on the requested resource
 
   Parameters
-  + TODO: outline parameters
+  + `query` `regex` -
+    a regular expression to run against the requested resource
 
   TODO: examples
   TODO: outline errors
@@ -158,7 +162,7 @@ TODO: explain what actions are
 
   Parameters
   + `fields` `array` -
-    an array of strings
+    an array of strings for each requested field
 
   TODO: examples
   TODO: outline errors
@@ -169,22 +173,48 @@ TODO: explain what actions are
 
 - [2.1](#2.1) <a name='2.1'></a> **Create** *default*
   > Create a resource with optional initial data.
-    Default POST action
+    Default POST action.
 
   Parameters
-  + TODO: outline parameters
+  + `data` `FormData` -
+    the initial data to store in the resource
 
-  TODO: examples
-  TODO: outline errors
+  Returns
+  ```javascript
+  // request
+  $.ajax({
+    url: 'http://cats.com/fs/mycats/Fluffy.img',
+    type: 'POST',
+    data: formdata,
+    processData: false,
+    contentType: false
+  });
+
+  // response
+  {
+    code: 200
+  }
+  ```
+
+  Errors
+  + `409` - Invalid path / Resource already exists
+  + `415` - Invalid file type
+  + `413` - Request data too large
+
 
 - [2.2](#2.2) <a name='2.2'></a> **Copy**
   > Copy a resource
 
   Parameters
-  + TODO: outline parameters
+  + `destination` `string` -
+    the full path where the copy should be created
 
   TODO: examples
-  TODO: outline errors
+
+  Errors
+  + Invalid path / Resource does not exist (404)
+  + Invalid destination / Resource already exists (409)
+
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -195,19 +225,28 @@ TODO: explain what actions are
     Default PUT action
 
   Parameters
-  + TODO: outline parameters
+  + `data` `FormData` -
+    the data to store in the resource
 
   TODO: examples
-  TODO: outline errors
+
+  Errors
+  + `404` - Invalid path / Resource does not exist
+  + `413` - Request data too large
+
+
 
 - [3.2](#3.2) <a name='3.2'></a> **Move**
   > Relocate an existing resource
 
   Parameters
-  + TODO: outline parameters
+  + `destination` `string` -
+    the path to which the resource will be moved
 
   TODO: examples
-  TODO: outline errors
+  Errors
+  + `404` - Invalid path / Resource does not exist
+  + `409` - Invalid destination / Resource already exists
 
 - [3.3](#3.3) <a name='3.3'></a> **Rename**
   > Rename an existing resource
@@ -226,10 +265,12 @@ TODO: explain what actions are
   > Destroy an existing resource
 
   Parameters
-  + TODO: outline parameters
+  > none
 
   TODO: examples
-  TODO: outline errors
+  
+  Errors
+  + `404` - Invalid path / Resource does not exist
 
 
 
