@@ -111,11 +111,14 @@ TODO: explain what actions are
   });
 
   // response
-  [
-    'kindof_pretty_cat.png',
-    'very_pretty_cat.png',
-    'morePrettyCats/' // a directory, signified by the trailing /
-  ]
+  {
+    code: 200,
+    data: [
+      'kindof_pretty_cat.png',
+      'very_pretty_cat.png',
+      'morePrettyCats/' // a directory, signified by the trailing /
+    ]
+  }
   ```
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -151,16 +154,88 @@ TODO: explain what actions are
 
 
 - [1.3](#1.3) <a name='1.3'></a> **Search**
-  > Run a query on the requested resource
+  > Run a query on the requested resource.
+    Note, only valid on directories
 
   Parameters
-  + `query` `regex` -
-    a regular expression to run against the requested resource
+  + `query` `regex` *optional* -
+    a regular expression to run against the requested directory
+  + `type` `string` *optional* -
+    filter by resource type, either 'directory' or 'file'
+  + `range` `integer array` *optional* -
+    `[ from, to ]` - the range of depths to query.
+    Zero is the current working directory.
 
-  TODO: examples
+  Returns an array of matching resources:
+  ```javascript
+  // request
+  $.ajax({
+    url: 'http://cats.com/fs/',
+    data: {
+      query: '/cat/gi'
+    }
+  });
+
+  // response
+  {
+    code: 200,
+    data: [
+      'prettyCats/',
+      'prettyCats/kindof_pretty_cat.png',
+      'prettyCats/very_pretty_cat.png',
+      'prettyCats/morePrettyCats/',
+      'ugly/ugly_cat.jpg',
+      'catcatcat.jpg'
+    ]
+  }
+  ```
+  Request only directories:
+  ```javascript
+  // request
+  $.ajax({
+    url: 'http://cats.com/fs/',
+    data: {
+      query: '/cat/gi',
+      type: 'directory'
+    }
+  });
+
+  // response
+  {
+    code: 200,
+    data: [
+      'prettyCats/',
+      'prettyCats/morePrettyCats/',
+    ]
+  }
+  ```
+  Request all child resources one level deep:
+  ```javascript
+  // request
+  $.ajax({
+    url: 'http://cats.com/fs/',
+    data: {
+      depth: [1, 1] // from level one to level one
+    }
+  });
+
+  // response
+  {
+    code: 200,
+    data: [
+      'prettyCats/kindof_pretty_cat.png',
+      'prettyCats/very_pretty_cat.png',
+      'prettyCats/morePrettyCats/',
+      'ugly/ugly_cat.jpg',
+      'ugly/wombat.png'
+    ]
+  }
+  ```
 
   Errors
   + `404` - Invalid path / Resource does not exist
+  + `501` - Invalid action / Action-Resource type conflict
+
 
 - [1.4](#1.4) <a name='1.4'></a> **Inspect**
   > Request detailed information about a resource
