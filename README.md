@@ -13,6 +13,7 @@
     1. [Help](#1.2)
     1. [Search](#1.3)
     1. [Inspect](#1.4)
+    1. [Download](#1.5)
   1. [Post](#post)
     1. [Create](#2.1)
     1. [Copy](#2.2)
@@ -30,9 +31,9 @@
 This API is intended to be the standard for communication between the client and server for the filesystem component of the Brinkbit IDE.
 While our use case is specific, we hope to develop this as a generalized implementation-agnostic standard for managing remote file systems via HTTP requests.
 
-The http-fs-api follows the [RESTful API](https://en.wikipedia.org/wiki/Representational_state_transfer) systems architecture style.
+The http-fs-api follows the [RESTful API](http://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm) systems architecture style.
 What this means in practice is that all actions are mapped to four [HTTP methods](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html) (POST, GET, PUT, DELETE) which in turn represent the four [CRUD commands](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) (Create, Read, Update, Delete).
-The url requested determines what resource will be manipulated.
+The requested url contains a uri component which determines what resource will be manipulated.
 
 While the API is designed to handle paths, directories, and files as though the backend were an actual file system, it's important to note that your backend implementation does not need to be an actual filesystem.
 In fact, we recommend that you not store the manipulated resources on an actual filesystem but use some other form of data storage i.e. a database or S3 Buckets.
@@ -138,7 +139,7 @@ TODO: explain what actions are
     url: 'http://cats.com/fs/Siamese.img',
     data: {
       action: 'Help',
-      action: 'Open'
+      method: 'Get'
     }
   });
 
@@ -158,13 +159,34 @@ TODO: explain what actions are
     Note, only valid on directories
 
   Parameters
-  + `query` `regex` *optional* -
-    a regular expression to run against the requested directory
-  + `type` `string` *optional* -
-    filter by resource type, either 'directory' or 'file'
-  + `range` `integer array` *optional* -
-    `[ from, to ]` - the range of depths to query.
-    Zero is the current working directory.
+  + `query` `regex` -
+    a regular expression to run against the specified fields on the requested resource
+  + `sort` `[{ field: string, descending: boolean }]`
+    *default: { field: 'name' }* -
+    either an object or an array of objects.
+    The fields on which to sort and their direction from highest to lowest priority.
+    - `field` - the field on which to sort.
+      Valid fields:
+      - `'type'` - either 'file' or 'directory'
+      - `'size'` - number of bytes
+      - `'name'` - the name of the resource
+      - `'dateCreated'` - unix timestamp when the resource was created
+      - `'lastModified'` - unix timestamp when the resource was last modified
+    - `descending` *default: true* - if the sort should descend
+  + `fields` `[string]` *default: ['name']* -
+    an array of strings.
+    The fields against which the query will be run.
+    Valid fields:
+    - `'type'` - either 'file' or 'directory'
+    - `'size'` - number of bytes
+    - `'name'` - the name of the resource
+    - `'dateCreated'` - unix timestamp when the resource was created
+    - `'lastModified'` - unix timestamp when the resource was last modified
+    - `'contents'` - the contents of the file
+  + `type` `string` *default: 'all'* -
+    filter by resource type, either 'directory', 'file', or 'all'
+  + `recursive` `boolean` *default false* -
+    if true, will deep search, otherwise shallow
 
   Returns an array of matching resources:
   ```javascript
@@ -172,6 +194,7 @@ TODO: explain what actions are
   $.ajax({
     url: 'http://cats.com/fs/',
     data: {
+      action: 'Search',
       query: '/cat/gi'
     }
   });
@@ -195,6 +218,7 @@ TODO: explain what actions are
   $.ajax({
     url: 'http://cats.com/fs/',
     data: {
+      action: 'Search',
       query: '/cat/gi',
       type: 'directory'
     }
@@ -209,28 +233,6 @@ TODO: explain what actions are
     ]
   }
   ```
-  Request all child resources one level deep:
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/',
-    data: {
-      depth: [1, 1] // from level one to level one
-    }
-  });
-
-  // response
-  {
-    code: 200,
-    data: [
-      'prettyCats/kindof_pretty_cat.png',
-      'prettyCats/very_pretty_cat.png',
-      'prettyCats/morePrettyCats/',
-      'ugly/ugly_cat.jpg',
-      'ugly/wombat.png'
-    ]
-  }
-  ```
 
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -242,12 +244,65 @@ TODO: explain what actions are
 
   Parameters
   + `fields` `array` -
-    an array of strings for each requested field
+    an array of strings for each requested fields.
+    Valid fields:
+    - `type` `string` - either `'file'` or `'directory'`
+    - `size` `number` - number of bytes
+    - `name` `string` - the name of the resource
+    - `parent` `string` - the parent directory
+    - `dateCreated` `number` - unix timestamp when the resource was created
+    - `lastModified` `number` - unix timestamp when the resource was last modified
 
-  TODO: examples
+  Example:
+  ```javascript
+  // request
+  $.ajax({
+    url: 'http://cats.com/fs/prettyCats/very_pretty_cat.png',
+    data: {
+      action: 'Inspect',
+      fields: ['type', 'size', 'name', 'parent', 'dateCreated', 'lastModified']
+    }
+  });
+
+  // response
+  {
+    code: 200,
+    data: {
+      type: 'file',
+      size: 1234567890,
+      name: 'very_pretty_cat.png',
+      parent: 'prettyCats/',
+      dateCreated: 1439765335,
+      lastModified: 1439765353
+    }
+  }
+  ```
 
   Errors
   + `404` - Invalid path / Resource does not exist
+
+
+  - [1.5](#1.5) <a name='1.5'></a> **Download**
+    > Zip and download requested resource
+
+    Parameters
+    > none
+
+    Example:
+    ```javascript
+    // request
+    $.ajax({
+      url: 'http://cats.com/fs/prettyCats/very_pretty_cat.png',
+      data: {
+        action: 'Download'
+      }
+    });
+
+    // returns zip of the file
+    ```
+
+    Errors
+    + `404` - Invalid path / Resource does not exist
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -261,12 +316,11 @@ TODO: explain what actions are
   + `data` `FormData` -
     the initial data to store in the resource
 
-  Returns
   ```javascript
   // request
   $.ajax({
     url: 'http://cats.com/fs/mycats/Fluffy.img',
-    type: 'POST',
+    method: 'POST',
     data: formdata,
     processData: false,
     contentType: false
@@ -288,14 +342,31 @@ TODO: explain what actions are
   > Copy a resource
 
   Parameters
-  + `destination` `string` -
+  + `destination` `string` - *default: the resource's full identifier*
     the full path where the copy should be created
+  + `makeUnique` `boolean` *default: true* -
+    if true, will auto-rename to unique value
 
-  TODO: examples
+  ```javascript
+  // request
+  $.ajax({
+    url: 'http://cats.com/fs/mycats/Fluffy.img',
+    method: 'POST',
+    data: {
+      action: 'Copy'
+    }
+  });
+
+  // response
+  {
+    code: 200,
+    data: 'http://cats.com/fs/mycats/Fluffy_1.img'
+  }
+  ```
 
   Errors
-  + Invalid path / Resource does not exist (404)
-  + Invalid destination / Resource already exists (409)
+  + `404` - Invalid path / Resource does not exist
+  + `409` - Invalid destination / Resource already exists
 
 
 **[⬆ back to top](#table-of-contents)**
@@ -310,7 +381,21 @@ TODO: explain what actions are
   + `data` `FormData` -
     the data to store in the resource
 
-  TODO: examples
+  ```javascript
+  // request
+  $.ajax({
+    url: 'http://cats.com/fs/mycats/cat_names.txt',
+    method: 'PUT',
+    data: {
+      data: 'Fluffy, Furry, Fuzzy'
+    }
+  });
+
+  // response
+  {
+    code: 200
+  }
+  ```
 
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -325,7 +410,23 @@ TODO: explain what actions are
   + `destination` `string` -
     the path to which the resource will be moved
 
-  TODO: examples
+  ```javascript
+  // request
+  $.ajax({
+    url: 'http://cats.com/fs/mycats/cat_names.txt',
+    method: 'PUT',
+    data: {
+      action: 'Move',
+      destination: 'http://cats.com/fs/ourcats/cat_names.txt'
+    }
+  });
+
+  // response
+  {
+    code: 200
+  }
+  ```
+
   Errors
   + `404` - Invalid path / Resource does not exist
   + `409` - Invalid destination / Resource already exists
@@ -334,10 +435,28 @@ TODO: explain what actions are
   > Rename an existing resource
 
   Parameters
-  + TODO: outline parameters
+  + `name` `string` - the new name to give the resource
 
-  TODO: examples
-  TODO: outline errors
+  ```javascript
+  // request
+  $.ajax({
+    url: 'http://cats.com/fs/mycats/cat_names.txt',
+    method: 'PUT',
+    data: {
+      action: 'Rename',
+      destination: 'http://cats.com/fs/ourcats/cat_names.txt'
+    }
+  });
+
+  // response
+  {
+    code: 200
+  }
+  ```
+
+  Errors
+  + `404` - Invalid path / Resource does not exist
+  + `409` - Invalid destination / Resource already exists
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -349,7 +468,18 @@ TODO: explain what actions are
   Parameters
   > none
 
-  TODO: examples
+  ```javascript
+  // request
+  $.ajax({
+    url: 'http://cats.com/fs/mycats/cat_names.txt',
+    method: 'DELETE'
+  });
+
+  // response
+  {
+    code: 200
+  }
+  ```
 
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -360,11 +490,10 @@ TODO: explain what actions are
 
 # TODOs
 
+- document global error responses
 - mention resources mapping to URIs
 - mention json data type
-- describe HTTP commands
 - outline response format
 - outline request format
 - outline what an action is (i.e. Open, Save, Copy)
-- outline the different actions and their HTTP command mappings
 - outline how to contribute
