@@ -59,19 +59,23 @@ Requests are made on a uri with one of the following four [HTTP methods](http://
 A uri represents the resource to take action on.
 For example the uri `/img.png`
 
-Every request accepts an optional JSON object as a request parameter.
+A JSON object MUST be at the root of every JSON API request and response containing data. This object defines a document's "top level". Every request MUST have `data` field at the top level.
 
-Every request can optionally specify an action field in the request parameters. For example:
+A request MAY specify an `action` field within the `data` field.
 
-```javascript
-$.ajax({
-  url: 'http://cats.com/fs/Siamese.img'
-  method: 'PUT',
-  data: {
-    action: 'Move',
-    destination: 'Siberian.img'
+```http
+PUT /Siamese.img HTTP/1.1
+Content-Type: application/fs.api+json
+Accept: application/fs.api+json
+
+{
+  "data": {
+    "action": "Move",
+    "parameters": {
+      "destination": "Siberian.img"
+    }
   }
-})
+}
 ```
 **[⬆ back to top](#table-of-contents)**
 
@@ -95,13 +99,9 @@ TODO: explain what actions are
   > *none*
 
   File:
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/Siamese.img'
-  });
-
-  // response is the image data
+  ```http
+  GET /Siamese.img HTTP/1.1
+  Accept: application/vnd.api+json
   ```
 
   Directory:
@@ -113,7 +113,7 @@ TODO: explain what actions are
 
   // response
   {
-    code: 200,
+    status: 200,
     data: [
       'kindof_pretty_cat.png',
       'very_pretty_cat.png',
@@ -139,7 +139,10 @@ TODO: explain what actions are
     url: 'http://cats.com/fs/Siamese.img',
     data: {
       action: 'Help',
-      method: 'Get'
+      parameters: {
+        method: 'Get',
+        action: 'Help'
+      }
     }
   });
 
