@@ -39,7 +39,6 @@ While the API is designed to handle paths, directories, and files as though the 
 In fact, we recommend that you not store the manipulated resources on an actual filesystem but use some other form of data storage i.e. a database or S3 Buckets.
 
 All examples contained in this document are written as [ajax requests](http://api.jquery.com/jquery.ajax/) and use the fictitious `http://cats.com` as the domain.
-In all the examples, `/fs/` will be the route on which the file system API is defined.
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -59,12 +58,12 @@ Requests are made on a uri with one of the following four [HTTP methods](http://
 A uri represents the resource to take action on.
 For example the uri `/img.png`
 
-A JSON object MUST be at the root of every JSON API request and response containing data. This object defines a document's "top level". Every request MUST have `data` field at the top level.
+A JSON object MUST be at the root of every JSON API request and response containing data. This object defines a document's "top level". Every request MUST have a `data` field at the top level.
 
-A request MAY specify an `action` field within the `data` field.
+A request MAY specify an `action` field within the `data` field, and it MAY have an associated `parameters` field.
 
 ```http
-PUT /Siamese.img HTTP/1.1
+PUT /animals/cats/Siamese.img HTTP/1.1
 Content-Type: application/fs.api+json
 Accept: application/fs.api+json
 
@@ -72,7 +71,7 @@ Accept: application/fs.api+json
   "data": {
     "action": "Move",
     "parameters": {
-      "destination": "Siberian.img"
+      "destination": "/animals/"
     }
   }
 }
@@ -81,13 +80,21 @@ Accept: application/fs.api+json
 
 # Response
 
-TODO: outline what a generalized response looks like
+Every response WILL have a JSON object at the root of the response when it contains data. The object defines the response's "top level". Every response MUST have a `data` field at the top level. The response will have either a `data` or an `errors` field, but NEVER both. There is an optional `metadata` field that would contain relevant or more descriptive data.
 
 **[⬆ back to top](#table-of-contents)**
 
 ## Actions
 
-TODO: explain what actions are
+`Action` is an optional parameter under `data` which gives direction for what operation will take place on the specified resource, or set of resources. Each action has an associated [HTTP method](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html), and only the actions associated with that HTTP method are accepted. If a mismatch between HTTP method and action occurs, the API MUST return a 400 status. The list of actions per method are as follows:
+
+GET: `default`, `help`, `search`, `inspect`, 'download'
+
+POST: `default`, `copy`
+
+PUT: `default`, `move`, `rename`
+
+DELETE: `default`
 
 ### Get
 
@@ -105,13 +112,13 @@ TODO: explain what actions are
   ```
 
   Directory:
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/prettyCats/'
-  });
+  ```http
+  GET /Siamese.img HTTP/1.1
+  Accept: application/vnd.api+json
+  ```
 
-  // response
+  Response:
+  ```javascript
   {
     status: 200,
     data: [
@@ -447,7 +454,7 @@ TODO: explain what actions are
     method: 'PUT',
     data: {
       action: 'Rename',
-      destination: 'http://cats.com/fs/ourcats/cat_names.txt'
+      destination: 'animal_names.txt'
     }
   });
 
