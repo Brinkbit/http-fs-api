@@ -82,13 +82,26 @@ Accept: application/fs.api+json
 
 Every response WILL have a JSON object at the root of the response when it contains data. The object defines the response's "top level". Every response MUST have a `data` field at the top level. The response will have either a `data` or an `errors` field, but NEVER both. There is an optional `metadata` field that would contain relevant or more descriptive data.
 
+An error response will take the following format:
+
+  ```javascript
+  {
+    errors: [
+      {
+        status: 404,
+        message: 'File not found.'
+      }
+    ]
+  }
+  ```
+
 **[⬆ back to top](#table-of-contents)**
 
 ## Actions
 
 `Action` is an optional parameter under `data` which gives direction for what operation will take place on the specified resource, or set of resources. Each action has an associated [HTTP method](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html), and only the actions associated with that HTTP method are accepted. If a mismatch between HTTP method and action occurs, the API MUST return a 400 status. The list of actions per method are as follows:
 
-GET: `default`, `help`, `search`, `inspect`, 'download'
+GET: `read`, `help`, `search`, `inspect`, 'download'
 
 POST: `default`, `copy`
 
@@ -113,14 +126,13 @@ DELETE: `default`
 
   Directory:
   ```http
-  GET /Siamese.img HTTP/1.1
+  GET /Siamese.img/ HTTP/1.1
   Accept: application/vnd.api+json
   ```
 
   Response:
   ```javascript
   {
-    status: 200,
     data: [
       'kindof_pretty_cat.png',
       'very_pretty_cat.png',
@@ -128,6 +140,7 @@ DELETE: `default`
     ]
   }
   ```
+
   Errors
   + `404` - Invalid path / Resource does not exist
 
