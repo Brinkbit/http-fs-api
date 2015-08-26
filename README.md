@@ -16,7 +16,8 @@
     1. [Download](#1.5)
   1. [Post](#post)
     1. [Create](#2.1)
-    1. [Copy](#2.2)
+    1. [Bulkupload](#2.2)
+    1. [Copy](#2.3)
   1. [Put](#post)
     1. [Update](#3.1)
     1. [Move](#3.2)
@@ -38,7 +39,21 @@ The requested url contains a uri component which determines what resource will b
 While the API is designed to handle paths, directories, and files as though the backend were an actual file system, it's important to note that your backend implementation does not need to be an actual filesystem.
 In fact, we recommend that you not store the manipulated resources on an actual filesystem but use some other form of data storage i.e. a database or S3 Buckets.
 
-All examples contained in this document are written as [ajax requests](http://api.jquery.com/jquery.ajax/) and use the fictitious `http://cats.com` as the domain.
+All examples contained in this document are written as HTTP requests, with the fictitious `http://animals.com` as the domain.
+The structure of the file system is as follows:
+
+TODO: replace with graphic.
+
++ animals/
+  + cats/
+    + siamese.jpg
+    + kindof_pretty_cat.png
+    + very_pretty_cat.gif
+    + more_pretty_cats/
+  + dogs/
+    + golden_retriever.bmp
+    + loyal_companion.png
+
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -56,14 +71,19 @@ TODO: expand explanation
 Requests are made on a uri with one of the following four [HTTP methods](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html): "GET", "POST", "PUT", "DELETE".
 
 A uri represents the resource to take action on.
-For example the uri `/img.png`
+For example the uri `/cats/siamese.jpg`
 
-A JSON object MUST be at the root of every JSON API request and response containing data. This object defines a document's "top level". Every request MUST have a `data` field at the top level.
+A JSON object MUST be at the root of every JSON API request containing data.
+This object defines a document's "top level".
+Every request containing a JSON object MUST have a `data` field at the top level.
 
-A request MAY specify an `action` field within the `data` field, and it MAY have an associated `parameters` field.
+A request MAY specify an `action` field within the `data` field, and it MAY have an associated `parameters` field. If no action is specified, then the associated default behavior occurs. Each `action` field has a set of accepted parameters, and the API MUST return a 400 status if a mismatch occurs.
+Note that each method's default has it's own alias, for consistency.
+
+Following our example file system, to move the `siamese.jpg` resource from the `/cats/` directory to the `/dogs/` directory, you would send the following request:
 
 ```http
-PUT /animals/cats/Siamese.img HTTP/1.1
+PUT /cats/siamese.jpg HTTP/1.1
 Content-Type: application/fs.api+json
 Accept: application/fs.api+json
 
@@ -71,7 +91,7 @@ Accept: application/fs.api+json
   "data": {
     "action": "Move",
     "parameters": {
-      "destination": "/animals/"
+      "destination": "/dogs/"
     }
   }
 }
@@ -80,34 +100,40 @@ Accept: application/fs.api+json
 
 # Response
 
-Every response WILL have a JSON object at the root of the response when it contains data. The object defines the response's "top level". Every response MUST have a `data` field at the top level. The response will have either a `data` or an `errors` field, but NEVER both. There is an optional `metadata` field that would contain relevant or more descriptive data.
+Similar to the request syntax, every response WILL have a JSON object at the root of the response when it contains data, which defines the response's "top level".
+The only exceptions to this are the `read` and `download` GET requests, which contain ONLY the resource's data.
+Every other response MUST have a `data` field at the top level on success, or an `errors` field on failure, but NEVER both.
+There is an optional `metadata` field that would contain relevant or more descriptive data.
 
-An error response will take the following format:
+An error response contains an array of at least one error object, and will take the following format:
 
-  ```javascript
-  {
-    errors: [
-      {
-        status: 404,
-        message: 'File not found.'
-      }
-    ]
-  }
-  ```
+```javascript
+{
+  "errors": [
+    {
+      "status": 404,
+      "message": "File not found."
+    }
+  ]
+}
+```
 
 **[⬆ back to top](#table-of-contents)**
 
 ## Actions
 
-`Action` is an optional parameter under `data` which gives direction for what operation will take place on the specified resource, or set of resources. Each action has an associated [HTTP method](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html), and only the actions associated with that HTTP method are accepted. If a mismatch between HTTP method and action occurs, the API MUST return a 400 status. The list of actions per method are as follows:
+`Action` is an optional parameter under `data` which gives direction for what operation will take place on the specified resource, or set of resources.
+Each action has an associated [HTTP method](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html), and only the actions associated with that HTTP method are accepted.
+If a mismatch between HTTP method and action occurs, the API MUST return a 400 status.
+The list of actions per method are as follows:
 
-GET: `read`, `help`, `search`, `inspect`, 'download'
+GET: [`Read`](#1.1), [`Help`](#1.2), [`Search`](#1.3), [`Inspect`](#1.4), [`Download`](#1.5)
 
-POST: `default`, `copy`
+POST: [`Create`](#2.1), [`Bulkupload`](#2.2), [`Copy`](#2.3)
 
-PUT: `default`, `move`, `rename`
+PUT: [`Update`](#3.1), [`Move`](#3.2), [`Rename`](#3.3)
 
-DELETE: `default`
+DELETE: [`Delete`](#4.1)
 
 ### Get
 
@@ -120,23 +146,28 @@ DELETE: `default`
 
   File:
   ```http
-  GET /Siamese.img HTTP/1.1
+  GET /cats/siamese.jpg HTTP/1.1
   Accept: application/vnd.api+json
   ```
 
+  Response:
+
+  `Raw image data`
+
   Directory:
   ```http
-  GET /Siamese.img/ HTTP/1.1
+  GET /cats/ HTTP/1.1
   Accept: application/vnd.api+json
   ```
 
   Response:
   ```javascript
   {
-    data: [
-      'kindof_pretty_cat.png',
-      'very_pretty_cat.png',
-      'morePrettyCats/' // a directory, signified by the trailing /
+    "data": [
+      "siamese.jpg",
+      "kindof_pretty_cat.png",
+      "very_pretty_cat.gif",
+      "morePrettyCats/" // a directory, signified by the trailing /
     ]
   }
   ```
@@ -146,30 +177,36 @@ DELETE: `default`
 
 
 - [1.2](#1.2) <a name='1.2'></a> **Help**
-  > Request detailed information for a given HTTP method
+  > Request detailed information for a given HTTP method and action
 
   Parameters
-  + `method` `string` *optional* -
+  + `method` `string` -
     an http method i.e. Get, Put, Post, or Delete
+  + `action` `string` - *optional*
+    one of the associated actions to the specified method.
 
   Returns a raw text help message
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/Siamese.img',
-    data: {
-      action: 'Help',
-      parameters: {
-        method: 'Get',
-        action: 'Help'
+  ```http
+  GET /cats/siamese.jpg HTTP/1.1
+  Accept: application/vnd.api+json
+
+  {
+    "data": {
+      "action": "Help",
+      "parameters": {
+        "method": "Get",
+        "action": "Help"
       }
     }
-  });
+  }
+  ```
 
-  // response
+  Response
+  ```javascript
   {
-    code: 200,
-    data: "Returns file and directory contents. Default GET action.\nParameters: none\n"
+    data: {
+      message: "Returns file and directory contents. Default GET action.\nParameters: none\n"
+    }
   }
   ```
 
@@ -180,6 +217,8 @@ DELETE: `default`
 - [1.3](#1.3) <a name='1.3'></a> **Search**
   > Run a query on the requested resource.
     Note, only valid on directories
+
+TODO: redo this section
 
   Parameters
   + `query` `regex` -
@@ -211,51 +250,55 @@ DELETE: `default`
   + `recursive` `boolean` *default false* -
     if true, will deep search, otherwise shallow
 
-  Returns an array of matching resources:
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/',
-    data: {
-      action: 'Search',
-      query: '/cat/gi'
-    }
-  });
+Returns an array of matching resources:
+```http
+GET /cats/
+Accept: application/vnd.api+json
 
-  // response
-  {
-    code: 200,
-    data: [
-      'prettyCats/',
-      'prettyCats/kindof_pretty_cat.png',
-      'prettyCats/very_pretty_cat.png',
-      'prettyCats/morePrettyCats/',
-      'ugly/ugly_cat.jpg',
-      'catcatcat.jpg'
-    ]
+{
+  "data": {
+    "action": "Search",
+    "parameters": {
+      "query": "/pretty/gi"
+    }
   }
-  ```
+}
+```
+
+Response:
+```javascript
+{
+  "data": [
+    "/cats/kindof_pretty_cat.png",
+    "/cats/more_pretty_cats/"
+  ]
+}
+```
+
   Request only directories:
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/',
-    data: {
-      action: 'Search',
-      query: '/cat/gi',
-      type: 'directory'
-    }
-  });
+  ```http
+  GET /cats/
+  Accept: application/vnd.api+json
 
-  // response
   {
-    code: 200,
-    data: [
-      'prettyCats/',
-      'prettyCats/morePrettyCats/',
-    ]
+    "data": {
+      "action": "Search",
+      "parameters": {
+        "query": "/pretty/gi",
+        "type": "directory"
+      }
+    }
   }
   ```
+
+Response:
+```javascript
+{
+  "data": [
+    "/cats/more_pretty_cats/"
+  ]
+}
+```
 
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -277,26 +320,30 @@ DELETE: `default`
     - `lastModified` `number` - unix timestamp when the resource was last modified
 
   Example:
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/prettyCats/very_pretty_cat.png',
-    data: {
-      action: 'Inspect',
-      fields: ['type', 'size', 'name', 'parent', 'dateCreated', 'lastModified']
-    }
-  });
+  ```http
+  GET /cats/kindof_pretty_cat.png
+  Accept: application/vnd.api+json
 
-  // response
   {
-    code: 200,
-    data: {
-      type: 'file',
-      size: 1234567890,
-      name: 'very_pretty_cat.png',
-      parent: 'prettyCats/',
-      dateCreated: 1439765335,
-      lastModified: 1439765353
+    "data": {
+      "action": "Inspect",
+      "parameters": {
+        "fields": ["type", "size", "name", "parent", "dateCreated", "lastModified"]
+      }
+    }
+  }
+  ```
+
+  Response:
+  ```javascript
+  {
+    "data": {
+      "type": "file",
+      "size": 1234567890,
+      "name": "very_pretty_cat.png",
+      "parent": "cats/",
+      "dateCreated": 1439765335,
+      "lastModified": 1439765353
     }
   }
   ```
@@ -312,17 +359,20 @@ DELETE: `default`
     > none
 
     Example:
-    ```javascript
-    // request
-    $.ajax({
-      url: 'http://cats.com/fs/prettyCats/very_pretty_cat.png',
-      data: {
-        action: 'Download'
-      }
-    });
+    ```http
+    GET /cats/kindof_pretty_cat.png
+    Accept: application/vnd.api+json
 
-    // returns zip of the file
+    {
+      "data": {
+        "action": "Download"
+      }
+    }
     ```
+
+    Response:
+
+    ```Zipped file contents```
 
     Errors
     + `404` - Invalid path / Resource does not exist
@@ -339,26 +389,33 @@ DELETE: `default`
   + `data` `FormData` -
     the initial data to store in the resource
 
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/Fluffy.img',
-    method: 'POST',
-    data: formdata,
-    processData: false,
-    contentType: false
-  });
+  ```http
+  POST /cats/new_cat_picture.img
+  Accept: application/vnd.api+json
 
-  // response
   {
-    code: 200
+    "data": {
+      "action": "Download",
+      "parameters": {
+        "data": formdata,
+        "processData": false,
+        "contentType": false
+      }
+    }
   }
-  ```
+  ```  
+
+  Response:
+
+  ```HTTP Status 200```
 
   Errors
   + `409` - Invalid path / Resource already exists
   + `415` - Invalid file type
   + `413` - Request data too large
+
+
+  TODO: "bulkupload"
 
 
 - [2.2](#2.2) <a name='2.2'></a> **Copy**
@@ -485,7 +542,7 @@ DELETE: `default`
 
 ### Delete
 
-- [4.1](#4.1) <a name='4.1'></a> **Delete**
+- [4.1](#4.1) <a name='4.1'></a> **Delete** *default*
   > Destroy an existing resource
 
   Parameters
