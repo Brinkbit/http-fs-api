@@ -385,7 +385,7 @@ Response:
   > Create a resource with optional initial data.
     Default POST action.
 
-  Parameters
+  Parameters 
   + `data` `FormData` -
     the initial data to store in the resource
 
