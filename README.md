@@ -47,6 +47,7 @@ TODO: replace with graphic.
 + animals/
   + cats/
     + siamese.jpg
+    + cat_adjectives.txt
     + kindof_pretty_cat.png
     + very_pretty_cat.gif
     + more_pretty_cats/
@@ -257,7 +258,7 @@ Accept: application/vnd.api+json
 
 {
   "data": {
-    "action": "Search",
+    "action": "search",
     "parameters": {
       "query": "/pretty/gi"
     }
@@ -282,7 +283,7 @@ Response:
 
   {
     "data": {
-      "action": "Search",
+      "action": "search",
       "parameters": {
         "query": "/pretty/gi",
         "type": "directory"
@@ -326,7 +327,7 @@ Response:
 
   {
     "data": {
-      "action": "Inspect",
+      "action": "inspect",
       "parameters": {
         "fields": ["type", "size", "name", "parent", "dateCreated", "lastModified"]
       }
@@ -365,7 +366,7 @@ Response:
 
     {
       "data": {
-        "action": "Download"
+        "action": "download"
       }
     }
     ```
@@ -385,19 +386,19 @@ Response:
   > Create a resource with optional initial data.
     Default POST action.
 
-  Parameters 
+  Parameters
   + `data` `FormData` -
     the initial data to store in the resource
 
   ```http
-  POST /cats/new_cat_picture.img
+  POST /cats/new_cat_picture.jpg
   Accept: application/vnd.api+json
 
   {
     "data": {
-      "action": "Download",
+      "action": "download",
       "parameters": {
-        "data": formdata,
+        "data": FormData,
         "processData": false,
         "contentType": false
       }
@@ -422,27 +423,28 @@ Response:
   > Copy a resource
 
   Parameters
-  + `destination` `string` - *default: the resource's full identifier*
+  + `destination` `string` -
     the full path where the copy should be created
   + `makeUnique` `boolean` *default: true* -
     if true, will auto-rename to unique value
 
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/Fluffy.img',
-    method: 'POST',
-    data: {
-      action: 'Copy'
-    }
-  });
 
-  // response
+  ```http
+  POST /cats/siamese.jpg
+  Accept: application/vnd.api+json
+
   {
-    code: 200,
-    data: 'http://cats.com/fs/mycats/Fluffy_1.img'
+    "data": {
+      "action": "copy",
+      "parameters": {
+        "destination": "/cats/siamese2.jpg"
+      }
+    }
   }
   ```
+
+  Response:
+  ```http Status 200```
 
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -461,21 +463,21 @@ Response:
   + `data` `FormData` -
     the data to store in the resource
 
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/cat_names.txt',
-    method: 'PUT',
-    data: {
-      data: 'Fluffy, Furry, Fuzzy'
-    }
-  });
+  ```http
+  PUT /cats/cat_adjectives.txt
+  Accept: application/vnd.api+json
 
-  // response
   {
-    code: 200
+    "data": {
+      "parameters": {
+        "data": "Fluffy, Furry, Fuzzy"
+      }
+    }
   }
   ```
+
+  Response:
+  ```http Status 200```
 
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -490,26 +492,27 @@ Response:
   + `destination` `string` -
     the path to which the resource will be moved
 
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/cat_names.txt',
-    method: 'PUT',
-    data: {
-      action: 'Move',
-      destination: 'http://cats.com/fs/ourcats/cat_names.txt'
-    }
-  });
+  ```http
+  PUT /cats/siamese.jpg
+  Accept: application/vnd.api+json
 
-  // response
   {
-    code: 200
+    "data": {
+      "action": "move",
+      "parameters": {
+        "destination": "/dogs/"
+      }
+    }
   }
   ```
+
+  Response:
+  ```http Status 200```
 
   Errors
   + `404` - Invalid path / Resource does not exist
   + `409` - Invalid destination / Resource already exists
+
 
 - [3.3](#3.3) <a name='3.3'></a> **Rename**
   > Rename an existing resource
@@ -518,21 +521,19 @@ Response:
   + `name` `string` - the new name to give the resource
 
   ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/cat_names.txt',
-    method: 'PUT',
-    data: {
-      action: 'Rename',
-      destination: 'animal_names.txt'
-    }
-  });
+  PUT /cats/siamese.jpg
+  Accept: application/vnd.api+json
 
-  // response
   {
-    code: 200
+    "data": {
+      "action": "Rename",
+      "destination": "calico.jpg"
+    }
   }
   ```
+
+  Response:
+  ```http Status 200```
 
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -548,18 +549,13 @@ Response:
   Parameters
   > none
 
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/cat_names.txt',
-    method: 'DELETE'
-  });
-
-  // response
-  {
-    code: 200
-  }
+  ```http
+  DELETE /cats/kindof_pretty_cat.png
+  Accept: application/vnd.api+json
   ```
+
+  Response:
+  ```http Status 200```
 
   Errors
   + `404` - Invalid path / Resource does not exist
