@@ -9,21 +9,20 @@
 1. [Response](#response)
 1. [Actions](#actions)
   1. [Get](#get)
-    1. [Read](#1.1)
-    1. [Help](#1.2)
-    1. [Search](#1.3)
-    1. [Inspect](#1.4)
-    1. [Download](#1.5)
+    1. [read](#1.1)
+    1. [search](#1.2)
+    1. [inspect](#1.3)
+    1. [download](#1.4)
   1. [Post](#post)
-    1. [Create](#2.1)
-    1. [Bulkupload](#2.2)
-    1. [Copy](#2.3)
+    1. [create](#2.1)
+    1. [bulk](#2.2)
+    1. [copy](#2.3)
   1. [Put](#post)
-    1. [Update](#3.1)
-    1. [Move](#3.2)
-    1. [Rename](#3.3)
+    1. [update](#3.1)
+    1. [move](#3.2)
+    1. [rename](#3.3)
   1. [Delete](#delete)
-    1. [Delete](#4.1)
+    1. [delete](#4.1)
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -40,15 +39,17 @@ While the API is designed to handle paths, directories, and files as though the 
 In fact, we recommend that you not store the manipulated resources on an actual filesystem but use some other form of data storage i.e. a database or S3 Buckets.
 
 All examples contained in this document are written as HTTP requests, with the fictitious `http://animals.com` as the domain.
+In all the examples, `pets/` will be the route on which the file system API is defined.
 The structure of the file system is as follows:
 
 TODO: replace with graphic.
 
-+ animals/
++ pets/
   + cats/
     + siamese.jpg
     + kindof_pretty_cat.png
     + very_pretty_cat.gif
+    + cat_names.txt
     + more_pretty_cats/
   + dogs/
     + golden_retriever.bmp
@@ -62,7 +63,10 @@ TODO: replace with graphic.
 Our filesystem has two types of resources, files and directories.
 Both can be manipulated with the same actions, but each behave a little differently.
 
-TODO: expand explanation
+Files are discrete, independent resources, containing metadata specifically to itself and their own data.
+Files must live either at the top level of the file system, or within a directory.
+
+Directories are containers for files and other directories, containing metadata for itself, as well as aggregated data concerning it's contents. They are denoted by a trailing slash, following their name, e.g., "more_pretty_cats/"
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -75,12 +79,53 @@ For example the uri `/cats/siamese.jpg`
 
 A JSON object MUST be at the root of every JSON API request containing data.
 This object defines a document's "top level".
-Every request containing a JSON object MUST have a `data` field at the top level.
+Every request containing a JSON object MUST have a `data` field at the top level
 
-A request MAY specify an `action` field within the `data` field, and it MAY have an associated `parameters` field. If no action is specified, then the associated default behavior occurs. Each `action` field has a set of accepted parameters, and the API MUST return a 400 status if a mismatch occurs.
+```json
+{
+    data: ...
+}
+```
+
+A request MAY specify an `action` string field within the `data` field.
+If no action is specified, then the associated default behavior occurs.
+Each `action` field has a set of accepted parameters, and the API MUST return a 400 status if a mismatch occurs.
 Note that each method's default has it's own alias, for consistency.
 
-Following our example file system, to move the `siamese.jpg` resource from the `/cats/` directory to the `/dogs/` directory, you would send the following request:
+```json
+{
+    "data": {
+      "action": "move",
+      ...
+    }
+}
+```
+
+The request MAY have a `parameters` field with the `data` field, which contains specific parameters for the given `action`. If there is no `action` field, the entire `parameters` field is ignored.
+
+```json
+{
+    "data": {
+      "action": "move",
+      "parameters": {
+        "destination": "dogs/",
+        ...
+      }
+    }
+}
+```
+
+The `parameters` field MAY also contain a `flags` field,
+which is an array of strings representing aliased flags which alter the specified action.
+The current list of flags are:
+
+`force` / `f`: force operation
+
+`recursive` / `r`: recursive
+
+`unique` / `u`: force uniqueness.
+
+Finishing out the example, to move the `siamese.jpg` resource from the `/cats/` directory to the `/dogs/` directory, overwriting any resource there that shares the name, you would send the following request:
 
 ```http
 PUT /cats/siamese.jpg HTTP/1.1
@@ -89,25 +134,39 @@ Accept: application/fs.api+json
 
 {
   "data": {
-    "action": "Move",
+    "action": "move",
     "parameters": {
-      "destination": "/dogs/"
-    }
+      "destination": "dogs/",
+      "flags": [ "force" ]
+    },
   }
 }
 ```
+
 **[⬆ back to top](#table-of-contents)**
 
 # Response
 
 Similar to the request syntax, every response WILL have a JSON object at the root of the response when it contains data, which defines the response's "top level".
-The only exceptions to this are the `read` and `download` GET requests, which contain ONLY the resource's data.
+The only exceptions to this are the successful `read` and `download` responses, which contain ONLY the resource's data.
 Every other response MUST have a `data` field at the top level on success, or an `errors` field on failure, but NEVER both.
 There is an optional `metadata` field that would contain relevant or more descriptive data.
 
-An error response contains an array of at least one error object, and will take the following format:
+A successful response will have all relevant data inside of a top-level `data` array, e.g.:
+```json
+{
+  "data": [
+    "file1",
+    "file2",
+    "folder/"
+  ]
+}
+```
 
-```javascript
+An error response WILL have a JSON object at the root, and WILL have an `errors` field at the top level.
+The `errors` field isan array of at least one JSON object containing only a  `status` field and `message` field. The `status` field should be a numerical status code representing the error condition, and the 'message' field should be a human-readable string giving additional information. E.g.:
+
+```json
 {
   "errors": [
     {
@@ -122,29 +181,32 @@ An error response contains an array of at least one error object, and will take 
 
 ## Actions
 
-`Action` is an optional parameter under `data` which gives direction for what operation will take place on the specified resource, or set of resources.
+`action` is an optional parameter under `data` which gives direction for what operation will take place on the specified resource, or set of resources.
 Each action has an associated [HTTP method](http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html), and only the actions associated with that HTTP method are accepted.
 If a mismatch between HTTP method and action occurs, the API MUST return a 400 status.
 The list of actions per method are as follows:
 
-GET: [`Read`](#1.1), [`Help`](#1.2), [`Search`](#1.3), [`Inspect`](#1.4), [`Download`](#1.5)
+GET: [`read`](#1.1), [`search`](#1.2), [`inspect`](#1.3), [`download`](#1.4)
 
-POST: [`Create`](#2.1), [`Bulkupload`](#2.2), [`Copy`](#2.3)
+POST: [`create`](#2.1), [`bulk`](#2.2), [`copy`](#2.3)
 
-PUT: [`Update`](#3.1), [`Move`](#3.2), [`Rename`](#3.3)
+PUT: [`update`](#3.1), [`move`](#3.2), [`rename`](#3.3)
 
-DELETE: [`Delete`](#4.1)
+DELETE: [`delete`](#4.1)
 
 ### Get
 
-- [1.1](#1.1) <a name='1.1'></a> **Read** *default*
+- [1.1](#1.1) <a name='1.1'></a> **read** *default*
   > Request file or directory contents.
     Default GET action
 
   Parameters
   > *none*
 
-  File:
+  Flags
+  > *none*
+
+  Request file:
   ```http
   GET /cats/siamese.jpg HTTP/1.1
   Accept: application/vnd.api+json
@@ -154,20 +216,20 @@ DELETE: [`Delete`](#4.1)
 
   `Raw image data`
 
-  Directory:
+  Request directory:
   ```http
   GET /cats/ HTTP/1.1
   Accept: application/vnd.api+json
   ```
 
   Response:
-  ```javascript
+  ```json
   {
     "data": [
       "siamese.jpg",
       "kindof_pretty_cat.png",
       "very_pretty_cat.gif",
-      "morePrettyCats/" // a directory, signified by the trailing /
+      "morePrettyCats/"
     ]
   }
   ```
@@ -176,157 +238,89 @@ DELETE: [`Delete`](#4.1)
   + `404` - Invalid path / Resource does not exist
 
 
-- [1.2](#1.2) <a name='1.2'></a> **Help**
-  > Request detailed information for a given HTTP method and action
+- [1.2](#1.2) <a name='1.2'></a> **search**
+  > Run a query on the requested directory, and returns an array of matching resources.
 
   Parameters
-  + `method` `string` -
-    an http method i.e. Get, Put, Post, or Delete
-  + `action` `string` - *optional*
-    one of the associated actions to the specified method.
+  + `query` `string` -
+    an implementation-specific query syntax supported by the API, defining which fields to search on.
+  + `sort` `string` *optional* -
+    an implementation-specific sorting syntax supported by the API, defining which fields to sort on.
+    If omitted, results will be returned in the manner determined by the query string.
 
-  Returns a raw text help message
-  ```http
-  GET /cats/siamese.jpg HTTP/1.1
-  Accept: application/vnd.api+json
+  Flags
+  + `recursive` - Deep search. Defaults to shallow.
 
-  {
-    "data": {
-      "action": "Help",
-      "parameters": {
-        "method": "Get",
-        "action": "Help"
-      }
-    }
-  }
-  ```
+  The API MUST support:
+  + `name`
+  + `parent`
 
-  Response
-  ```javascript
-  {
-    data: {
-      message: "Returns file and directory contents. Default GET action.\nParameters: none\n"
-    }
-  }
-  ```
+  The API MAY support:
+  + `type`
+  + `size`
+  + `dateCreated`
+  + `lastModified`
+  +  other custom fields defined by the implementation
 
-  Errors
-  + `404` - Invalid path / Resource does not exist
-
-
-- [1.3](#1.3) <a name='1.3'></a> **Search**
-  > Run a query on the requested resource.
-    Note, only valid on directories
-
-TODO: redo this section
-
-  Parameters
-  + `query` `regex` -
-    a regular expression to run against the specified fields on the requested resource
-  + `sort` `[{ field: string, descending: boolean }]`
-    *default: { field: 'name' }* -
-    either an object or an array of objects.
-    The fields on which to sort and their direction from highest to lowest priority.
-    - `field` - the field on which to sort.
-      Valid fields:
-      - `'type'` - either 'file' or 'directory'
-      - `'size'` - number of bytes
-      - `'name'` - the name of the resource
-      - `'dateCreated'` - unix timestamp when the resource was created
-      - `'lastModified'` - unix timestamp when the resource was last modified
-    - `descending` *default: true* - if the sort should descend
-  + `fields` `[string]` *default: ['name']* -
-    an array of strings.
-    The fields against which the query will be run.
-    Valid fields:
-    - `'type'` - either 'file' or 'directory'
-    - `'size'` - number of bytes
-    - `'name'` - the name of the resource
-    - `'dateCreated'` - unix timestamp when the resource was created
-    - `'lastModified'` - unix timestamp when the resource was last modified
-    - `'contents'` - the contents of the file
-  + `type` `string` *default: 'all'* -
-    filter by resource type, either 'directory', 'file', or 'all'
-  + `recursive` `boolean` *default false* -
-    if true, will deep search, otherwise shallow
-
-Returns an array of matching resources:
-```http
-GET /cats/
-Accept: application/vnd.api+json
-
-{
-  "data": {
-    "action": "Search",
-    "parameters": {
-      "query": "/pretty/gi"
-    }
-  }
-}
-```
-
-Response:
-```javascript
-{
-  "data": [
-    "/cats/kindof_pretty_cat.png",
-    "/cats/more_pretty_cats/"
-  ]
-}
-```
-
-  Request only directories:
+  Request:
   ```http
   GET /cats/
   Accept: application/vnd.api+json
 
   {
     "data": {
-      "action": "Search",
+      "action": "search",
       "parameters": {
-        "query": "/pretty/gi",
-        "type": "directory"
+        "query": "-name \"*pretty*\""
       }
     }
   }
   ```
 
-Response:
-```javascript
-{
-  "data": [
-    "/cats/more_pretty_cats/"
-  ]
-}
-```
+  Response:
+  ```json
+  {
+    "data": [
+      "/cats/kindof_pretty_cat.png",
+      "/cats/more_pretty_cats/"
+    ]
+  }
+  ```
 
   Errors
-  + `404` - Invalid path / Resource does not exist
+  + `404` - Invalid path
   + `501` - Invalid action / Action-Resource type conflict
 
 
-- [1.4](#1.4) <a name='1.4'></a> **Inspect**
-  > Request detailed information about a resource
+- [1.3](#1.3) <a name='1.3'></a> **inspect**
+  > Request detailed information about a resource.
+  By default, all metadata is returned; specifying fields will return only those fields.
 
   Parameters
-  + `fields` `array` -
+  + `fields` `array` *optional* -
     an array of strings for each requested fields.
-    Valid fields:
-    - `type` `string` - either `'file'` or `'directory'`
-    - `size` `number` - number of bytes
-    - `name` `string` - the name of the resource
-    - `parent` `string` - the parent directory
-    - `dateCreated` `number` - unix timestamp when the resource was created
-    - `lastModified` `number` - unix timestamp when the resource was last modified
 
-  Example:
+    The following fields MUST be supported:
+    + `name` `string` - the name of the resource
+    + `parent` `string` - the parent directory
+
+    The following fields MAY be supported:
+    + `type` `string` - either `'file'` or `'directory'`
+    + `size` `number` - number of bytes
+    + `dateCreated` `number` - unix timestamp when the resource was created
+    + `lastModified` `number` - unix timestamp when the resource was last modified
+
+  Flags
+  > *none*
+
+  Request:
   ```http
   GET /cats/kindof_pretty_cat.png
   Accept: application/vnd.api+json
 
   {
     "data": {
-      "action": "Inspect",
+      "action": "inspect",
       "parameters": {
         "fields": ["type", "size", "name", "parent", "dateCreated", "lastModified"]
       }
@@ -352,20 +346,27 @@ Response:
   + `404` - Invalid path / Resource does not exist
 
 
-  - [1.5](#1.5) <a name='1.5'></a> **Download**
+  - [1.4](#1.4) <a name='1.4'></a> **download**
     > Zip and download requested resource
 
     Parameters
-    > none
+    + `compression` `string` -
+      Specify the type of compression to be used. Defaults to `zip`
 
-    Example:
+    The following compression formats MUST be supported:
+    + Zip
+
+    Flags
+    > *none*
+
+    Request:
     ```http
     GET /cats/kindof_pretty_cat.png
     Accept: application/vnd.api+json
 
     {
       "data": {
-        "action": "Download"
+        "action": "download"
       }
     }
     ```
@@ -385,21 +386,23 @@ Response:
   > Create a resource with optional initial data.
     Default POST action.
 
-  Parameters 
-  + `data` `FormData` -
-    the initial data to store in the resource
+  Parameters
+  + `content` `any format` -
+    the data to store in the resource
 
+  Flags
+  + `force` - overwrites existing resource
+
+  Request:
   ```http
-  POST /cats/new_cat_picture.img
+  POST /cats/new_cat_picture.jpg
   Accept: application/vnd.api+json
 
   {
     "data": {
-      "action": "Download",
+      "action": "create",
       "parameters": {
-        "data": formdata,
-        "processData": false,
-        "contentType": false
+        "content": `raw image data`
       }
     }
   }
@@ -413,73 +416,125 @@ Response:
   + `409` - Invalid path / Resource already exists
   + `415` - Invalid file type
   + `413` - Request data too large
+  + `501` - Invalid action / Action-Resource type conflict
 
 
-  TODO: "bulkupload"
+- [2.2](#2.2) <a name='2.2'></a> **bulk**
+  > Create multiple resources with optional initial data, in a specified directory.
+
+  Parameters
+  + `resources` `json` -
+    Map of names to content of resources to be uploaded.
+    `null` specifies no initial content.
+
+  Flags
+  + `force` - overwrites existing resource
+
+  Request:
+  ```http
+  POST /cats/
+  Accept: application/vnd.api+json
+
+  {
+    "data": {
+      "action": "create",
+      "parameters": {
+        resources: {
+          "another_cat_picture": `raw image data`,
+          "the_best_cats/": null
+        }
+      }
+    }
+  }
+  ```  
+
+  Response:
+
+  ```HTTP Status 200```
+
+  Errors
+  + `409` - Invalid path / Resource already exists
+  + `415` - Invalid file type
+  + `413` - Request data too large
+  + `501` - Invalid action / Action-Resource type conflict  
 
 
-- [2.2](#2.2) <a name='2.2'></a> **Copy**
+- [2.3](#2.3) <a name='2.3'></a> **Copy**
   > Copy a resource
 
   Parameters
-  + `destination` `string` - *default: the resource's full identifier*
-    the full path where the copy should be created
-  + `makeUnique` `boolean` *default: true* -
-    if true, will auto-rename to unique value
+  + `destination` `string` - the full path to where the copy should be created.
+  Defaults to the specified resource's directory.
 
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/Fluffy.img',
-    method: 'POST',
-    data: {
-      action: 'Copy'
-    }
-  });
+  Flags
+  + `unique` - renames the resource in the typical "_1" format if there is a naming conflict.
 
-  // response
+  Request:
+  ```http
+  POST /cats/fluffy.jpg
+  Accept: application/vnd.api+json
+
   {
-    code: 200,
-    data: 'http://cats.com/fs/mycats/Fluffy_1.img'
+    "data": {
+      "action": "copy",
+      "parameters": {
+        "destination": './'
+      }
+    }
+  }
+  ```
+
+  Response:
+  ``` json
+  {
+    "data": "cats/siamese_1.jpg."
   }
   ```
 
   Errors
   + `404` - Invalid path / Resource does not exist
   + `409` - Invalid destination / Resource already exists
+  + `501` - Invalid action / Action-Resource type conflict
 
 
 **[⬆ back to top](#table-of-contents)**
 
 ### Put
 
-- [3.1](#3.1) <a name='3.1'></a> **Update** *default*
+- [3.1](#3.1) <a name='3.1'></a> **update** *default*
   > Modify an existing resource.
     Default PUT action
 
   Parameters
-  + `data` `FormData` -
+  + `contents` `any format` -
     the data to store in the resource
 
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/cat_names.txt',
-    method: 'PUT',
-    data: {
-      data: 'Fluffy, Furry, Fuzzy'
-    }
-  });
+  Flags
+  > none
 
-  // response
+  Request:
+  ```http
+  PUT /cats/fluffy.jpg
+  Accept: application/vnd.api+json
+
   {
-    code: 200
+    "data": {
+      "action": "update",
+      "parameters": {
+        "contents": `new image data`
+      }
+    }
   }
   ```
+
+  Response:
+
+  ```HTTP Status 200```
 
   Errors
   + `404` - Invalid path / Resource does not exist
   + `413` - Request data too large
+  + `501` - Invalid action / Action-Resource type conflict
 
 
 
@@ -487,29 +542,35 @@ Response:
   > Relocate an existing resource
 
   Parameters
-  + `destination` `string` -
-    the path to which the resource will be moved
+  + `destination` `string` - the path to which the resource will be moved
 
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/cat_names.txt',
-    method: 'PUT',
-    data: {
-      action: 'Move',
-      destination: 'http://cats.com/fs/ourcats/cat_names.txt'
-    }
-  });
+  Flags
+  > none
 
-  // response
+  Request:
+  ```http
+  PUT /cats/cat_names.txt
+  Accept: application/vnd.api+json
+
   {
-    code: 200
+    "data": {
+      "action": "move",
+      "parameters": {
+        "destination": "cats/more_pretty_cats/"
+      }
+    }
   }
   ```
+
+  Response:
+
+  ```HTTP Status 200```
 
   Errors
   + `404` - Invalid path / Resource does not exist
   + `409` - Invalid destination / Resource already exists
+  + `501` - Invalid action / Action-Resource type conflict
+
 
 - [3.3](#3.3) <a name='3.3'></a> **Rename**
   > Rename an existing resource
@@ -517,26 +578,32 @@ Response:
   Parameters
   + `name` `string` - the new name to give the resource
 
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/cat_names.txt',
-    method: 'PUT',
-    data: {
-      action: 'Rename',
-      destination: 'animal_names.txt'
-    }
-  });
+  Flags
+  > none
 
-  // response
+  Request:
+  ```http
+  PUT /cats/more_pretty_cats/cat_names.txt
+  Accept: application/vnd.api+json
+
   {
-    code: 200
+    "data": {
+      "action": "rename",
+      "parameters": {
+        "name": "pretty_cat_names.txt"
+      }
+    }
   }
   ```
+
+  Response:
+
+  ```HTTP Status 200```  
 
   Errors
   + `404` - Invalid path / Resource does not exist
   + `409` - Invalid destination / Resource already exists
+  + `501` - Invalid action / Action-Resource type conflict
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -548,23 +615,22 @@ Response:
   Parameters
   > none
 
-  ```javascript
-  // request
-  $.ajax({
-    url: 'http://cats.com/fs/mycats/cat_names.txt',
-    method: 'DELETE'
-  });
+  Flags
+  + `force` - Removes resource and all child resources.
 
-  // response
-  {
-    code: 200
-  }
+
+  Request:
+  ```http
+  DELETE /cats/more_pretty_cats/pretty_cat_names.txt
+  Accept: application/vnd.api+json
   ```
+
+  Response:
+
+  ```HTTP Status 200```
 
   Errors
   + `404` - Invalid path / Resource does not exist
-
-
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -573,7 +639,5 @@ Response:
 - document global error responses
 - mention resources mapping to URIs
 - mention json data type
-- outline response format
-- outline request format
 - outline what an action is (i.e. Open, Save, Copy)
 - outline how to contribute
