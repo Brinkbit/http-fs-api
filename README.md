@@ -81,9 +81,11 @@ A JSON object MUST be at the root of every JSON API request containing data.
 This object defines a document's "top level".
 Every request containing a JSON object MUST have a `data` field at the top level
 
-```json
+```javascript
 {
-    data: ...
+  "data": {
+    //...
+  }
 }
 ```
 
@@ -92,26 +94,26 @@ If no action is specified, then the associated default behavior occurs.
 Each `action` field has a set of accepted parameters, and the API MUST return a 400 status if a mismatch occurs.
 Note that each method's default has it's own alias, for consistency.
 
-```json
+```javascript
 {
-    "data": {
-      "action": "move",
-      ...
-    }
+  "data": {
+    "action": "move",
+    //...
+  }
 }
 ```
 
 The request MAY have a `parameters` field with the `data` field, which contains specific parameters for the given `action`. If there is no `action` field, the entire `parameters` field is ignored.
 
-```json
+```javascript
 {
-    "data": {
-      "action": "move",
-      "parameters": {
-        "destination": "dogs/",
-        ...
-      }
+  "data": {
+    "action": "move",
+    "parameters": {
+      "destination": "dogs/",
+      //...
     }
+  }
 }
 ```
 
@@ -153,7 +155,7 @@ Every other response MUST have a `data` field at the top level on success, or an
 There is an optional `metadata` field that would contain relevant or more descriptive data.
 
 A successful response will have all relevant data inside of a top-level `data` array, e.g.:
-```json
+```javascript
 {
   "data": [
     "file1",
@@ -166,7 +168,7 @@ A successful response will have all relevant data inside of a top-level `data` a
 An error response WILL have a JSON object at the root, and WILL have an `errors` field at the top level.
 The `errors` field isan array of at least one JSON object containing only a  `status` field and `message` field. The `status` field should be a numerical status code representing the error condition, and the 'message' field should be a human-readable string giving additional information. E.g.:
 
-```json
+```javascript
 {
   "errors": [
     {
@@ -223,7 +225,7 @@ DELETE: [`delete`](#4.1)
   ```
 
   Response:
-  ```json
+  ```javascript
   {
     "data": [
       "siamese.jpg",
@@ -278,7 +280,7 @@ DELETE: [`delete`](#4.1)
   ```
 
   Response:
-  ```json
+  ```javascript
   {
     "data": [
       "/cats/kindof_pretty_cat.png",
@@ -346,37 +348,37 @@ DELETE: [`delete`](#4.1)
   + `404` - Invalid path / Resource does not exist
 
 
-  - [1.4](#1.4) <a name='1.4'></a> **download**
-    > Zip and download requested resource
+- [1.4](#1.4) <a name='1.4'></a> **download**
+  > Zip and download requested resource
 
-    Parameters
-    + `compression` `string` -
-      Specify the type of compression to be used. Defaults to `zip`
+  Parameters
+  + `compression` `string` -
+    Specify the type of compression to be used. Defaults to `zip`
 
-    The following compression formats MUST be supported:
-    + Zip
+  The following compression formats MUST be supported:
+  + Zip
 
-    Flags
-    > *none*
+  Flags
+  > *none*
 
-    Request:
-    ```http
-    GET /cats/kindof_pretty_cat.png
-    Accept: application/vnd.api+json
+  Request:
+  ```http
+  GET /cats/kindof_pretty_cat.png
+  Accept: application/vnd.api+json
 
-    {
-      "data": {
-        "action": "download"
-      }
+  {
+    "data": {
+      "action": "download"
     }
-    ```
+  }
+  ```
 
-    Response:
+  Response:
 
-    ```Zipped file contents```
+  ```Zipped file contents```
 
-    Errors
-    + `404` - Invalid path / Resource does not exist
+  Errors
+  + `404` - Invalid path / Resource does not exist
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -485,7 +487,7 @@ DELETE: [`delete`](#4.1)
   ```
 
   Response:
-  ``` json
+  ``` javascript
   {
     "data": "cats/siamese_1.jpg."
   }
