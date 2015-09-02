@@ -407,7 +407,7 @@ DELETE: [`delete`](#4.1)
     "data": {
       "action": "create",
       "parameters": {
-        "content": `raw image data`
+        "content": "raw image data"
       }
     }
   }
@@ -444,8 +444,8 @@ DELETE: [`delete`](#4.1)
     "data": {
       "action": "create",
       "parameters": {
-        resources: {
-          "another_cat_picture": `raw image data`,
+        "resources": {
+          "another_cat_picture": "raw image data",
           "the_best_cats/": null
         }
       }
@@ -483,7 +483,7 @@ DELETE: [`delete`](#4.1)
     "data": {
       "action": "copy",
       "parameters": {
-        "destination": './'
+        "destination": "./"
       }
     }
   }
