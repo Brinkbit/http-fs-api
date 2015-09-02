@@ -47,6 +47,7 @@ TODO: replace with graphic.
 + pets/
   + cats/
     + siamese.jpg
+    + cat_adjectives.txt
     + kindof_pretty_cat.png
     + very_pretty_cat.gif
     + cat_names.txt
@@ -493,6 +494,9 @@ DELETE: [`delete`](#4.1)
   }
   ```
 
+  Response:
+  ```http Status 200```
+
   Errors
   + `404` - Invalid path / Resource does not exist
   + `409` - Invalid destination / Resource already exists
@@ -516,14 +520,15 @@ DELETE: [`delete`](#4.1)
 
   Request:
   ```http
-  PUT /cats/fluffy.jpg
+  PUT /cats/cat_adjectives.txt
+
   Accept: application/vnd.api+json
 
   {
     "data": {
-      "action": "update",
       "parameters": {
-        "contents": `new image data`
+        "data": "Fluffy, Furry, Fuzzy"
+
       }
     }
   }
@@ -532,6 +537,7 @@ DELETE: [`delete`](#4.1)
   Response:
 
   ```HTTP Status 200```
+
 
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -568,10 +574,12 @@ DELETE: [`delete`](#4.1)
 
   ```HTTP Status 200```
 
+
   Errors
   + `404` - Invalid path / Resource does not exist
   + `409` - Invalid destination / Resource already exists
   + `501` - Invalid action / Action-Resource type conflict
+
 
 
 - [3.3](#3.3) <a name='3.3'></a> **Rename**
