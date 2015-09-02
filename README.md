@@ -150,10 +150,12 @@ Accept: application/fs.api+json
 
 # Response
 
-Similar to the request syntax, every response WILL have a JSON object at the root of the response when it contains data, which defines the response's "top level".
-The only exceptions to this are the successful `read` and `download` responses, which contain ONLY the resource's data.
-Every other response MUST have a `data` field at the top level on success, or an `errors` field on failure, but NEVER both.
-There is an optional `metadata` field that would contain relevant or more descriptive data.
+Similar to the request syntax, most responses SHOULD have a JSON object at the root of the response when it contains data, which defines the response's "top level".
+The only exceptions to this are the successful `read` and `download` responses, which MUST only contain the resource's data.
+Every other response MUST have a `data` field at the top level on success, or an `errors` field on failure.
+It MUST NOT have both.
+The root level response MAY contain a metadata field that contains relevant or more descriptive data.
+The root level of a JSON response MUST NOT contain any fields besides `data`, `error`, and `metadata`.
 
 A successful response will have all relevant data inside of a top-level `data` array, e.g.:
 ```javascript
@@ -246,7 +248,7 @@ DELETE: [`delete`](#4.1)
 
   Parameters
   + `query` `string` -
-    an implementation-specific query syntax supported by the API, defining which fields to search on.
+    an implementation-specific query syntax supported by the API, that defines on which fields to search, and the search to be made.
   + `sort` `string` *optional* -
     an implementation-specific sorting syntax supported by the API, defining which fields to sort on.
     If omitted, results will be returned in the manner determined by the query string.
@@ -254,11 +256,11 @@ DELETE: [`delete`](#4.1)
   Flags
   + `recursive` - Deep search. Defaults to shallow.
 
-  The API MUST support:
+  The implementation MUST support querying the following fields:
   + `name`
   + `parent`
 
-  The API MAY support:
+  The implementation MAY support querying the following fields:
   + `type`
   + `size`
   + `dateCreated`
@@ -385,7 +387,7 @@ DELETE: [`delete`](#4.1)
 
 ### Post
 
-- [2.1](#2.1) <a name='2.1'></a> **Create** *default*
+- [2.1](#2.1) <a name='2.1'></a> **create** *default*
   > Create a resource with optional initial data.
     Default POST action.
 
@@ -427,7 +429,7 @@ DELETE: [`delete`](#4.1)
 
   Parameters
   + `resources` `json` -
-    Map of names to content of resources to be uploaded.
+    Hash of names and content of resources to be uploaded.
     `null` specifies no initial content.
 
   Flags
@@ -462,7 +464,7 @@ DELETE: [`delete`](#4.1)
   + `501` - Invalid action / Action-Resource type conflict  
 
 
-- [2.3](#2.3) <a name='2.3'></a> **Copy**
+- [2.3](#2.3) <a name='2.3'></a> **copy**
   > Copy a resource
 
   Parameters
@@ -546,7 +548,7 @@ DELETE: [`delete`](#4.1)
 
 
 
-- [3.2](#3.2) <a name='3.2'></a> **Move**
+- [3.2](#3.2) <a name='3.2'></a> **move**
   > Relocate an existing resource
 
   Parameters
@@ -582,7 +584,7 @@ DELETE: [`delete`](#4.1)
 
 
 
-- [3.3](#3.3) <a name='3.3'></a> **Rename**
+- [3.3](#3.3) <a name='3.3'></a> **rename**
   > Rename an existing resource
 
   Parameters
@@ -619,7 +621,7 @@ DELETE: [`delete`](#4.1)
 
 ### Delete
 
-- [4.1](#4.1) <a name='4.1'></a> **Delete** *default*
+- [4.1](#4.1) <a name='4.1'></a> **delete** *default*
   > Destroy an existing resource
 
   Parameters
