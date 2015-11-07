@@ -514,7 +514,7 @@ DELETE: [`delete`](#4.1)
     Default PUT action
 
   Parameters
-  + `contents` `any format` -
+  + `content` `any format` -
     the data to store in the resource
 
   Flags
@@ -529,8 +529,7 @@ DELETE: [`delete`](#4.1)
   {
     "data": {
       "parameters": {
-        "data": "Fluffy, Furry, Fuzzy"
-
+        "content": "Fluffy, Furry, Fuzzy"
       }
     }
   }
