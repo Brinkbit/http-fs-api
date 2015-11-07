@@ -191,25 +191,22 @@ Each action has an associated [HTTP method](http://www.w3.org/Protocols/rfc2616/
 If a mismatch between HTTP method and action occurs, the API MUST return a 400 status.
 The list of actions per method are as follows:
 
-GET: [`read`](#1.1), [`search`](#1.2), [`inspect`](#1.3), [`download`](#1.4)
-
-POST: [`create`](#2.1), [`bulk`](#2.2), [`copy`](#2.3)
-
-PUT: [`update`](#3.1), [`move`](#3.2), [`rename`](#3.3)
-
-DELETE: [`delete`](#4.1)
+- [GET](#get): [`read`](#1.1), [`search`](#1.2), [`inspect`](#1.3), [`download`](#1.4)
+- [POST](#post): [`create`](#2.1), [`bulk`](#2.2), [`copy`](#2.3)
+- [PUT](#put): [`update`](#3.1), [`move`](#3.2), [`rename`](#3.3)
+- [DELETE](#delete): [`delete`](#4.1)
 
 ### Get
 
-- [1.1](#1.1) <a name='1.1'></a> **read** *default*
+#### - [1.1](#1.1) <a name='1.1'></a> **read** *default*
   > Request file or directory contents.
     Default GET action
 
   Parameters
   > *none*
 
-  Flags
-  > *none*
+  The implementation MAY support the following flag:
+  + `recursive` - return an array of children resources and all of their children resources relative to the requested resource
 
   Request file:
   ```http
@@ -242,8 +239,9 @@ DELETE: [`delete`](#4.1)
   Errors
   + `404` - Invalid path / Resource does not exist
 
+**[⬆ back to top](#table-of-contents)**
 
-- [1.2](#1.2) <a name='1.2'></a> **search**
+#### - [1.2](#1.2) <a name='1.2'></a> **search**
   > Run a query on the requested directory, and returns an array of matching resources.
 
   Parameters
@@ -253,8 +251,8 @@ DELETE: [`delete`](#4.1)
     an implementation-specific sorting syntax supported by the API, defining which fields to sort on.
     If omitted, results will be returned in the manner determined by the query string.
 
-  Flags
-  + `recursive` - Deep search. Defaults to shallow.
+  The implementation MUST support the following flag:
+  + `recursive` - deep search. Defaults to shallow.
 
   The implementation MUST support querying the following fields:
   + `name`
@@ -293,27 +291,29 @@ DELETE: [`delete`](#4.1)
   ```
 
   Errors
+  + `400` - Action-Resource type conflict
   + `404` - Invalid path
-  + `501` - Invalid action / Action-Resource type conflict
 
+**[⬆ back to top](#table-of-contents)**
 
-- [1.3](#1.3) <a name='1.3'></a> **inspect**
+#### - [1.3](#1.3) <a name='1.3'></a> **inspect**
   > Request detailed information about a resource.
   By default, all metadata is returned; specifying fields will return only those fields.
 
-  Parameters
+  The following parameter MUST be supported:
   + `fields` `array` *optional* -
     an array of strings for each requested fields.
 
-    The following fields MUST be supported:
-    + `name` `string` - the name of the resource
-    + `parent` `string` - the parent directory
+  The following fields MUST be supported:
+  + `name` `string` - the name of the resource
+  + `parent` `string` - the parent directory
 
-    The following fields MAY be supported:
-    + `type` `string` - either `'file'` or `'directory'`
-    + `size` `number` - number of bytes
-    + `dateCreated` `number` - unix timestamp when the resource was created
-    + `lastModified` `number` - unix timestamp when the resource was last modified
+  The following fields MAY be supported:
+  + `type` `string` - either `'file'` or `'directory'`
+  + `size` `number` - number of bytes
+  + `dateCreated` `number` - unix timestamp when the resource was created
+  + `lastModified` `number` - unix timestamp when the resource was last modified
+  +  other custom fields defined by the implementation
 
   Flags
   > *none*
@@ -350,8 +350,9 @@ DELETE: [`delete`](#4.1)
   Errors
   + `404` - Invalid path / Resource does not exist
 
+**[⬆ back to top](#table-of-contents)**
 
-- [1.4](#1.4) <a name='1.4'></a> **download**
+#### - [1.4](#1.4) <a name='1.4'></a> **download**
   > Zip and download requested resource
 
   Parameters
@@ -387,7 +388,7 @@ DELETE: [`delete`](#4.1)
 
 ### Post
 
-- [2.1](#2.1) <a name='2.1'></a> **create** *default*
+#### - [2.1](#2.1) <a name='2.1'></a> **create** *default*
   > Create a resource with optional initial data.
     Default POST action.
 
@@ -396,7 +397,7 @@ DELETE: [`delete`](#4.1)
     the data to store in the resource
 
   Flags
-  + `force` - overwrites existing resource
+  + `force` - overwrite existing resource
 
   Request:
   ```http
@@ -418,13 +419,14 @@ DELETE: [`delete`](#4.1)
   ```HTTP Status 200```
 
   Errors
+  + `400` - Action-Resource type conflict
   + `409` - Invalid path / Resource already exists
   + `415` - Invalid file type
   + `413` - Request data too large
-  + `501` - Invalid action / Action-Resource type conflict
 
+**[⬆ back to top](#table-of-contents)**
 
-- [2.2](#2.2) <a name='2.2'></a> **bulk**
+#### - [2.2](#2.2) <a name='2.2'></a> **bulk**
   > Create multiple resources with optional initial data, in a specified directory.
 
   Parameters
@@ -433,7 +435,7 @@ DELETE: [`delete`](#4.1)
     `null` specifies no initial content.
 
   Flags
-  + `force` - overwrites existing resource
+  + `force` - overwrite existing resource
 
   Request:
   ```http
@@ -458,13 +460,14 @@ DELETE: [`delete`](#4.1)
   ```HTTP Status 200```
 
   Errors
+  + `400` - Action-Resource type conflict
   + `409` - Invalid path / Resource already exists
   + `415` - Invalid file type
   + `413` - Request data too large
-  + `501` - Invalid action / Action-Resource type conflict  
 
+**[⬆ back to top](#table-of-contents)**
 
-- [2.3](#2.3) <a name='2.3'></a> **copy**
+#### - [2.3](#2.3) <a name='2.3'></a> **copy**
   > Copy a resource
 
   Parameters
@@ -472,7 +475,9 @@ DELETE: [`delete`](#4.1)
   Defaults to the specified resource's directory.
 
   Flags
-  + `unique` - renames the resource in the typical "_1" format if there is a naming conflict.
+  + `unique` - rename the resource in the typical "filename_XXXX.jpg" format if there is a naming conflict.
+  + `force` - overwrite any existing resource
+  + `recursive` - copy resource and all of its children
 
   Request:
   ```http
@@ -492,7 +497,7 @@ DELETE: [`delete`](#4.1)
   Response:
   ``` javascript
   {
-    "data": "cats/siamese_1.jpg."
+    "data": "cats/siamese_1.jpg"
   }
   ```
 
@@ -500,16 +505,16 @@ DELETE: [`delete`](#4.1)
   ```http Status 200```
 
   Errors
+  + `400` - Action-Resource type conflict
   + `404` - Invalid path / Resource does not exist
   + `409` - Invalid destination / Resource already exists
-  + `501` - Invalid action / Action-Resource type conflict
 
 
 **[⬆ back to top](#table-of-contents)**
 
 ### Put
 
-- [3.1](#3.1) <a name='3.1'></a> **update** *default*
+#### - [3.1](#3.1) <a name='3.1'></a> **update** *default*
   > Modify an existing resource.
     Default PUT action
 
@@ -518,7 +523,7 @@ DELETE: [`delete`](#4.1)
     the data to store in the resource
 
   Flags
-  > none
+  + `force` - create resource if it does not exist
 
   Request:
   ```http
@@ -541,20 +546,21 @@ DELETE: [`delete`](#4.1)
 
 
   Errors
+  + `400` - Action-Resource type conflict
   + `404` - Invalid path / Resource does not exist
   + `413` - Request data too large
-  + `501` - Invalid action / Action-Resource type conflict
 
+**[⬆ back to top](#table-of-contents)**
 
-
-- [3.2](#3.2) <a name='3.2'></a> **move**
+#### - [3.2](#3.2) <a name='3.2'></a> **move**
   > Relocate an existing resource
 
   Parameters
   + `destination` `string` - the path to which the resource will be moved
 
   Flags
-  > none
+  + `force` - overwrite resource if it exists
+  + `recursive` - move resource and all children
 
   Request:
   ```http
@@ -577,20 +583,20 @@ DELETE: [`delete`](#4.1)
 
 
   Errors
+  + `400` - Action-Resource type conflict
   + `404` - Invalid path / Resource does not exist
   + `409` - Invalid destination / Resource already exists
-  + `501` - Invalid action / Action-Resource type conflict
 
+**[⬆ back to top](#table-of-contents)**
 
-
-- [3.3](#3.3) <a name='3.3'></a> **rename**
+#### - [3.3](#3.3) <a name='3.3'></a> **rename**
   > Rename an existing resource
 
   Parameters
   + `name` `string` - the new name to give the resource
 
   Flags
-  > none
+  + `force` - overwrite resource if it exists
 
   Request:
   ```http
@@ -612,22 +618,22 @@ DELETE: [`delete`](#4.1)
   ```HTTP Status 200```  
 
   Errors
+  + `400` - Action-Resource type conflict
   + `404` - Invalid path / Resource does not exist
   + `409` - Invalid destination / Resource already exists
-  + `501` - Invalid action / Action-Resource type conflict
 
 **[⬆ back to top](#table-of-contents)**
 
 ### Delete
 
-- [4.1](#4.1) <a name='4.1'></a> **delete** *default*
+#### - [4.1](#4.1) <a name='4.1'></a> **delete** *default*
   > Destroy an existing resource
 
   Parameters
   > none
 
   Flags
-  + `force` - Removes resource and all child resources.
+  + `recursive` - remove resource and all child resources.
 
 
   Request:
@@ -650,5 +656,4 @@ DELETE: [`delete`](#4.1)
 - document global error responses
 - mention resources mapping to URIs
 - mention json data type
-- outline what an action is (i.e. Open, Save, Copy)
 - outline how to contribute
