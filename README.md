@@ -205,6 +205,9 @@ The list of actions per method are as follows:
   Parameters
   > *none*
 
+  Flags
+  > *none*
+
   The implementation MAY support the following flag:
   + `recursive` - return an array of children resources and all of their children resources relative to the requested resource
 
@@ -264,6 +267,10 @@ The list of actions per method are as follows:
   + `dateCreated`
   + `lastModified`
   +  other custom fields defined by the implementation
+
+
+  Flags
+  > *none*
 
   Request:
   ```http
