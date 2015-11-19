@@ -254,9 +254,6 @@ The list of actions per method are as follows:
     an implementation-specific sorting syntax supported by the API, defining which fields to sort on.
     If omitted, results will be returned in the manner determined by the query string.
 
-  The implementation MUST support the following flag:
-  + `recursive` - deep search. Defaults to shallow.
-
   The implementation MUST support querying the following fields:
   + `name`
   + `parent`
@@ -270,7 +267,7 @@ The list of actions per method are as follows:
 
 
   Flags
-  > *none*
+  + `recursive` - deep search. Defaults to shallow.
 
   Request:
   ```http
