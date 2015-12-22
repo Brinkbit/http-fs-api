@@ -22,8 +22,8 @@
     1. [update](#3.1)
     1. [move](#3.2)
     1. [rename](#3.3)
-  1. [Delete](#delete)
-    1. [delete](#4.1)
+  1. [Delete](#destroy)
+    1. [destroy](#4.1)
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -390,7 +390,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```Zipped file contents```
+  `Zipped file contents`
 
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -427,7 +427,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```
+  `HTTP Status 200`
 
   Errors
   + `400` - Action-Resource type conflict
@@ -468,7 +468,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```
+  `HTTP Status 200`
 
   Errors
   + `400` - Action-Resource type conflict
@@ -513,7 +513,7 @@ The list of actions per method are as follows:
   ```
 
   Response:
-  ```http Status 200```
+  `http Status 200`
 
   Errors
   + `400` - Action-Resource type conflict
@@ -553,7 +553,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```
+  `HTTP Status 200`
 
 
   Errors
@@ -590,7 +590,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```
+  `HTTP Status 200`
 
 
   Errors
@@ -626,7 +626,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```  
+  `HTTP Status 200`
 
   Errors
   + `400` - Action-Resource type conflict
@@ -655,7 +655,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```
+  `HTTP Status 200`
 
   Errors
   + `404` - Invalid path / Resource does not exist
