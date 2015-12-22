@@ -151,7 +151,7 @@ Accept: application/fs.api+json
 
 # Workflow
 
-![Workflow Diagram](https://imgur.com/LZUAPZd "Workflow Diagram")
+![Workflow Diagram](images/fs_workflow.jpg "Workflow Diagram")
 
 **[⬆ back to top](#table-of-contents)**
 
