@@ -7,7 +7,6 @@
 1. [Resources](#resources)
 1. [Request](#request)
 1. [Response](#response)
-1. [Workflow](#workflow)
 1. [Actions](#actions)
   1. [Get](#get)
     1. [read](#1.1)
@@ -146,12 +145,6 @@ Accept: application/fs.api+json
   }
 }
 ```
-
-**[⬆ back to top](#table-of-contents)**
-
-# Workflow
-
-![Workflow Diagram](images/fs_workflow.jpg "Workflow Diagram")
 
 **[⬆ back to top](#table-of-contents)**
 
