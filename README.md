@@ -23,6 +23,7 @@
     1. [rename](#3.3)
   1. [Delete](#destroy)
     1. [destroy](#4.1)
+1. [Contribution](#contribution)
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -655,9 +656,12 @@ The list of actions per method are as follows:
 
 **[⬆ back to top](#table-of-contents)**
 
+# Contribution
+
+The guide for contributing to any of our repositories can be found [here](https://github.com/Brinkbit/brinkbit-style-es6#contributing).
+
 # TODOs
 
 - document global error responses
 - mention resources mapping to URIs
 - mention json data type
-- outline how to contribute
