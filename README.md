@@ -21,7 +21,7 @@
     1. [update](#3.1)
     1. [move](#3.2)
     1. [rename](#3.3)
-  1. [Delete](#destroy)
+  1. [Delete](#delete)
     1. [destroy](#4.1)
 1. [Contribution](#contribution)
 
@@ -195,7 +195,7 @@ The list of actions per method are as follows:
 - [GET](#get): [`read`](#1.1), [`search`](#1.2), [`inspect`](#1.3), [`download`](#1.4)
 - [POST](#post): [`create`](#2.1), [`bulk`](#2.2), [`copy`](#2.3)
 - [PUT](#put): [`update`](#3.1), [`move`](#3.2), [`rename`](#3.3)
-- [DELETE](#delete): [`delete`](#4.1)
+- [DELETE](#delete): [`destroy`](#4.1)
 
 ### Get
 
@@ -432,12 +432,10 @@ The list of actions per method are as follows:
 **[⬆ back to top](#table-of-contents)**
 
 #### - [2.2](#2.2) <a name='2.2'></a> **bulk**
-  > Create multiple resources with optional initial data, in a specified directory.
+  > Upload multiple resources, or the full content of a directory, to a specified directory.
 
   Parameters
-  + `resources` `json` -
-    Hash of names and content of resources to be uploaded.
-    `null` specifies no initial content.
+  > *none*
 
   Flags
   + `force` - overwrite existing resource
@@ -446,16 +444,11 @@ The list of actions per method are as follows:
   ```http
   POST /cats/
   Accept: application/vnd.api+json
+  ContentType: multipart/form-data
 
   {
     "data": {
-      "action": "create",
-      "parameters": {
-        "resources": {
-          "another_cat_picture": "raw image data",
-          "the_best_cats/": null
-        }
-      }
+      "action": "bulk"
     }
   }
   ```  
@@ -496,13 +489,6 @@ The list of actions per method are as follows:
         "destination": "./"
       }
     }
-  }
-  ```
-
-  Response:
-  ``` javascript
-  {
-    "data": "cats/siamese_1.jpg"
   }
   ```
 
@@ -631,7 +617,7 @@ The list of actions per method are as follows:
 
 ### Delete
 
-#### - [4.1](#4.1) <a name='4.1'></a> **delete** *default*
+#### - [4.1](#4.1) <a name='4.1'></a> **destroy** *default*
   > Destroy an existing resource
 
   Parameters
