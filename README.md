@@ -10,9 +10,10 @@
 1. [Actions](#actions)
   1. [Get](#get)
     1. [read](#1.1)
-    1. [search](#1.2)
-    1. [inspect](#1.3)
-    1. [download](#1.4)
+    1. [alias](#1.2)
+    1. [search](#1.3)
+    1. [inspect](#1.4)
+    1. [download](#1.5)
   1. [Post](#post)
     1. [create](#2.1)
     1. [bulk](#2.2)
@@ -201,7 +202,7 @@ The list of actions per method are as follows:
 
 #### - [1.1](#1.1) <a name='1.1'></a> **read** *default*
   > Request file or directory contents.
-    Default GET action
+    Default GET action.
 
   Parameters
   > *none*
@@ -245,7 +246,45 @@ The list of actions per method are as follows:
 
 **[⬆ back to top](#table-of-contents)**
 
-#### - [1.2](#1.2) <a name='1.2'></a> **search**
+#### - [1.2](#1.2) <a name='1.2'></a> **alias**
+  > Resolve a resource to an internal alias.
+
+  The implementation MAY support aliasing resources, such as by GUID, to speed up retrieving or
+  querying resources
+
+  Parameters
+  > *none*
+
+  Flags
+  > *none*
+
+  Request:
+  ```http
+  GET /cats/kindof_pretty_cat.png
+  Accept: application/vnd.api+json
+
+  {
+    "data": {
+      "action": "alias"
+    }
+  }
+  ```
+
+  Response:
+  ```javascript
+  {
+    "data": {
+      "GUID": "4d2df4ed-2d77-4bc2-ba94-1d999786aa1e"
+    }
+  }
+  ```
+
+  Errors
+  + `404` - Resource not found
+
+**[⬆ back to top](#table-of-contents)**
+
+#### - [1.3](#1.3) <a name='1.3'></a> **search**
   > Run a query on the requested directory, and returns an array of matching resources.
 
   Parameters
@@ -301,7 +340,7 @@ The list of actions per method are as follows:
 
 **[⬆ back to top](#table-of-contents)**
 
-#### - [1.3](#1.3) <a name='1.3'></a> **inspect**
+#### - [1.4](#1.4) <a name='1.4'></a> **inspect**
   > Request detailed information about a resource.
   By default, all metadata is returned; specifying fields will return only those fields.
 
@@ -357,7 +396,7 @@ The list of actions per method are as follows:
 
 **[⬆ back to top](#table-of-contents)**
 
-#### - [1.4](#1.4) <a name='1.4'></a> **download**
+#### - [1.5](#1.5) <a name='1.5'></a> **download**
   > Zip and download requested resource
 
   Parameters
@@ -394,12 +433,14 @@ The list of actions per method are as follows:
 ### Post
 
 #### - [2.1](#2.1) <a name='2.1'></a> **create** *default*
-  > Create a resource with optional initial data.
+  > Create a resource in a specified directory.
     Default POST action.
 
   Parameters
-  + `content` `any format` -
-    the data to store in the resource
+  + `type` `string` - either `file` or `directory`
+  + `name` `string` - the name of the resource
+  + `content` `any format` *optional* -
+    the data to store in the resource, if `type` is `file`
 
   Flags
   + `force` - overwrite existing resource
