@@ -516,7 +516,6 @@ The list of actions per method are as follows:
   Flags
   + `unique` - rename the resource in the typical "filename_XXXX.jpg" format if there is a naming conflict.
   + `force` - overwrite any existing resource
-  + `recursive` - copy resource and all of its children
 
   Request:
   ```http
@@ -592,7 +591,6 @@ The list of actions per method are as follows:
 
   Flags
   + `force` - overwrite resource if it exists
-  + `recursive` - move resource and all children
 
   Request:
   ```http
@@ -662,10 +660,10 @@ The list of actions per method are as follows:
   > Destroy an existing resource
 
   Parameters
-  > none
+  > *none*
 
   Flags
-  + `recursive` - remove resource and all child resources.
+  > *none*
 
 
   Request:
