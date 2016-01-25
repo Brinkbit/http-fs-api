@@ -10,9 +10,10 @@
 1. [Actions](#actions)
   1. [Get](#get)
     1. [read](#1.1)
-    1. [search](#1.2)
-    1. [inspect](#1.3)
-    1. [download](#1.4)
+    1. [alias](#1.2)
+    1. [search](#1.3)
+    1. [inspect](#1.4)
+    1. [download](#1.5)
   1. [Post](#post)
     1. [create](#2.1)
     1. [bulk](#2.2)
@@ -22,7 +23,8 @@
     1. [move](#3.2)
     1. [rename](#3.3)
   1. [Delete](#delete)
-    1. [delete](#4.1)
+    1. [destroy](#4.1)
+1. [Contribution](#contribution)
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -194,15 +196,18 @@ The list of actions per method are as follows:
 - [GET](#get): [`read`](#1.1), [`search`](#1.2), [`inspect`](#1.3), [`download`](#1.4)
 - [POST](#post): [`create`](#2.1), [`bulk`](#2.2), [`copy`](#2.3)
 - [PUT](#put): [`update`](#3.1), [`move`](#3.2), [`rename`](#3.3)
-- [DELETE](#delete): [`delete`](#4.1)
+- [DELETE](#delete): [`destroy`](#4.1)
 
 ### Get
 
 #### - [1.1](#1.1) <a name='1.1'></a> **read** *default*
   > Request file or directory contents.
-    Default GET action
+    Default GET action.
 
   Parameters
+  > *none*
+
+  Flags
   > *none*
 
   The implementation MAY support the following flag:
@@ -241,7 +246,45 @@ The list of actions per method are as follows:
 
 **[⬆ back to top](#table-of-contents)**
 
-#### - [1.2](#1.2) <a name='1.2'></a> **search**
+#### - [1.2](#1.2) <a name='1.2'></a> **alias**
+  > Resolve a resource to an internal alias.
+
+  The implementation MAY support aliasing resources, such as by GUID, to speed up retrieving or
+  querying resources
+
+  Parameters
+  > *none*
+
+  Flags
+  > *none*
+
+  Request:
+  ```http
+  GET /cats/kindof_pretty_cat.png
+  Accept: application/vnd.api+json
+
+  {
+    "data": {
+      "action": "alias"
+    }
+  }
+  ```
+
+  Response:
+  ```javascript
+  {
+    "data": {
+      "GUID": "4d2df4ed-2d77-4bc2-ba94-1d999786aa1e"
+    }
+  }
+  ```
+
+  Errors
+  + `404` - Resource not found
+
+**[⬆ back to top](#table-of-contents)**
+
+#### - [1.3](#1.3) <a name='1.3'></a> **search**
   > Run a query on the requested directory, and returns an array of matching resources.
 
   Parameters
@@ -250,9 +293,6 @@ The list of actions per method are as follows:
   + `sort` `string` *optional* -
     an implementation-specific sorting syntax supported by the API, defining which fields to sort on.
     If omitted, results will be returned in the manner determined by the query string.
-
-  The implementation MUST support the following flag:
-  + `recursive` - deep search. Defaults to shallow.
 
   The implementation MUST support querying the following fields:
   + `name`
@@ -264,6 +304,10 @@ The list of actions per method are as follows:
   + `dateCreated`
   + `lastModified`
   +  other custom fields defined by the implementation
+
+
+  Flags
+  + `recursive` - deep search. Defaults to shallow.
 
   Request:
   ```http
@@ -296,7 +340,7 @@ The list of actions per method are as follows:
 
 **[⬆ back to top](#table-of-contents)**
 
-#### - [1.3](#1.3) <a name='1.3'></a> **inspect**
+#### - [1.4](#1.4) <a name='1.4'></a> **inspect**
   > Request detailed information about a resource.
   By default, all metadata is returned; specifying fields will return only those fields.
 
@@ -352,7 +396,7 @@ The list of actions per method are as follows:
 
 **[⬆ back to top](#table-of-contents)**
 
-#### - [1.4](#1.4) <a name='1.4'></a> **download**
+#### - [1.5](#1.5) <a name='1.5'></a> **download**
   > Zip and download requested resource
 
   Parameters
@@ -379,7 +423,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```Zipped file contents```
+  `Zipped file contents`
 
   Errors
   + `404` - Invalid path / Resource does not exist
@@ -389,12 +433,14 @@ The list of actions per method are as follows:
 ### Post
 
 #### - [2.1](#2.1) <a name='2.1'></a> **create** *default*
-  > Create a resource with optional initial data.
+  > Create a resource in a specified directory.
     Default POST action.
 
   Parameters
-  + `content` `any format` -
-    the data to store in the resource
+  + `type` `string` - either `file` or `directory`
+  + `name` `string` - the name of the resource
+  + `content` `any format` *optional* -
+    the data to store in the resource, if `type` is `file`
 
   Flags
   + `force` - overwrite existing resource
@@ -416,7 +462,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```
+  `HTTP Status 200`
 
   Errors
   + `400` - Action-Resource type conflict
@@ -427,12 +473,10 @@ The list of actions per method are as follows:
 **[⬆ back to top](#table-of-contents)**
 
 #### - [2.2](#2.2) <a name='2.2'></a> **bulk**
-  > Create multiple resources with optional initial data, in a specified directory.
+  > Upload multiple resources, or the full content of a directory, to a specified directory.
 
   Parameters
-  + `resources` `json` -
-    Hash of names and content of resources to be uploaded.
-    `null` specifies no initial content.
+  > *none*
 
   Flags
   + `force` - overwrite existing resource
@@ -441,23 +485,18 @@ The list of actions per method are as follows:
   ```http
   POST /cats/
   Accept: application/vnd.api+json
+  ContentType: multipart/form-data
 
   {
     "data": {
-      "action": "create",
-      "parameters": {
-        "resources": {
-          "another_cat_picture": "raw image data",
-          "the_best_cats/": null
-        }
-      }
+      "action": "bulk"
     }
   }
   ```  
 
   Response:
 
-  ```HTTP Status 200```
+  `HTTP Status 200`
 
   Errors
   + `400` - Action-Resource type conflict
@@ -477,7 +516,6 @@ The list of actions per method are as follows:
   Flags
   + `unique` - rename the resource in the typical "filename_XXXX.jpg" format if there is a naming conflict.
   + `force` - overwrite any existing resource
-  + `recursive` - copy resource and all of its children
 
   Request:
   ```http
@@ -495,14 +533,7 @@ The list of actions per method are as follows:
   ```
 
   Response:
-  ``` javascript
-  {
-    "data": "cats/siamese_1.jpg"
-  }
-  ```
-
-  Response:
-  ```http Status 200```
+  `http Status 200`
 
   Errors
   + `400` - Action-Resource type conflict
@@ -542,7 +573,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```
+  `HTTP Status 200`
 
 
   Errors
@@ -560,7 +591,6 @@ The list of actions per method are as follows:
 
   Flags
   + `force` - overwrite resource if it exists
-  + `recursive` - move resource and all children
 
   Request:
   ```http
@@ -579,7 +609,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```
+  `HTTP Status 200`
 
 
   Errors
@@ -615,7 +645,7 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```  
+  `HTTP Status 200`
 
   Errors
   + `400` - Action-Resource type conflict
@@ -626,14 +656,14 @@ The list of actions per method are as follows:
 
 ### Delete
 
-#### - [4.1](#4.1) <a name='4.1'></a> **delete** *default*
+#### - [4.1](#4.1) <a name='4.1'></a> **destroy** *default*
   > Destroy an existing resource
 
   Parameters
-  > none
+  > *none*
 
   Flags
-  + `recursive` - remove resource and all child resources.
+  > *none*
 
 
   Request:
@@ -644,16 +674,19 @@ The list of actions per method are as follows:
 
   Response:
 
-  ```HTTP Status 200```
+  `HTTP Status 200`
 
   Errors
   + `404` - Invalid path / Resource does not exist
 
 **[⬆ back to top](#table-of-contents)**
 
+# Contribution
+
+The guide for contributing to any of our repositories can be found [here](https://github.com/Brinkbit/brinkbit-style-es6#contributing).
+
 # TODOs
 
 - document global error responses
 - mention resources mapping to URIs
 - mention json data type
-- outline how to contribute
