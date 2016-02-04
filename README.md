@@ -1,6 +1,9 @@
 # Brinkbit HTTP Filesystem API
 > A generalized RESTful API for managing a remote file system
 
+>[![Slack Status](https://brinkbit-slack.herokuapp.com/badge.svg)](https://brinkbit-slack.herokuapp.com)
+
+
 # Table of Contents
 
 1. [Overview](#overview)
